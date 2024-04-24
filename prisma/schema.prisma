@@ -1,0 +1,597 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator kysely {
+  provider = "prisma-kysely"
+
+  // Optionally provide a destination directory for the generated file
+  // and a filename of your choice
+  output       = "../src/lib/db"
+  fileName     = "types.ts"
+  // Optionally generate runtime enums to a separate file
+  enumFileName = "enums.ts"
+}
+
+model User {
+  // General not null fields
+  id              String         @id @default(dbgenerated("gen_random_uuid()"))
+  email           String         @unique
+  phoneNumber     String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime?      @updatedAt
+  role            Role           @default(ROLE_USER)
+  type            UserType       @default(USER_VOLUNTEER)
+  requestSend     Boolean        @default(false)
+  username        String?        @unique
+  password        String?
+  //changed user request status boolean to 3 state
+  requestStatus   RequestStatus?
+  // Volunteer fields
+  firstName       String?
+  lastName        String?
+  certificationId String?        @unique
+  gender          String?
+  bio             String?
+  birthDate       DateTime?
+  skills          UserSkill[]
+  registerCode    String?
+  level           Int?
+  xp              Int?
+
+  // Partner, Supporter fields + bio
+  organizationName String?
+  organizationType String?
+  introduction     String?
+  contact          Json?
+  eventPermit      Int     @default(1)
+  projectPermit    Int     @default(1)
+
+  // Relations
+  Donations             Donation[]
+  Addresses             Address[]
+  VolunteerCertificates Certificate[] @relation("VolunteerCertificate")
+
+  MyEvents              Event[]
+  MyProject             Project[]
+  CollaboratingEvents   EventCollaborator[]
+  CollaboratingProjects ProjectCollaborator[]
+  UserImages            UserImage[]
+  ReceivedNotifications Notification[]        @relation("Receiver")
+  SendNotifications     Notification[]        @relation("Sender")
+  Medias                Media[]
+  ParticipatingEvents   EventParticipator[]
+  CertificateTemplates  CertificateTemplate[]
+
+  PartnerPlan   PartnerPlan? @relation(fields: [partnerPlanId], references: [id])
+  partnerPlanId String?      @unique
+
+  PartnerBanners PartnerBanner[]
+  PartnerPermits PartnerPermit[]
+  Payments       Payment[]
+}
+
+enum Role {
+  ROLE_USER
+  ROLE_ADMIN
+  ROLE_SUPER_ADMIN
+}
+
+enum UserType {
+  USER_VOLUNTEER
+  USER_PARTNER
+  USER_SUPPORTER
+  ADMIN
+}
+
+enum ProjectType {
+  FUNDRAISING
+  GRANT_FUNDRAISING
+}
+
+enum EventType {
+  EVENT
+  VOLUNTEERING
+}
+
+enum RequestStatus {
+  REQUEST_PENDING
+  REQUEST_DENIED
+  REQUEST_APPROVED
+}
+
+enum ProjectStatus {
+  PENDING
+  APPROVED
+  DENIED
+  DONE
+}
+
+model Event {
+  //General
+  id                String         @id @default(dbgenerated("gen_random_uuid()"))
+  slug              String         @unique
+  type              EventType      @default(VOLUNTEERING)
+  title             String
+  description       String
+  location          String
+  status            ProjectStatus?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime?      @updatedAt
+  enabled           Boolean
+  startTime         DateTime?
+  endTime           DateTime?
+  contact           Json?
+  featured          Boolean
+  volunteeringHours Int?           @default(0)
+  maxVolunteers     Int?           @default(0)
+
+  //Only on Volunteering event
+  maxPoint Int?
+
+  //Relatoin
+  Owner               User?                 @relation(fields: [ownerId], references: [id])
+  ownerId             String?
+  CategoryEvents      CategoryEvent[]
+  EventImages         EventImage[]
+  Participators       EventParticipator[]
+  Collabrators        EventCollaborator[]
+  CertificateTemplate CertificateTemplate[]
+  Certificate         Certificate[]
+  EventRole           EventRole[]
+
+  @@index([ownerId])
+}
+
+model EventRole {
+  id                String              @id @default(dbgenerated("gen_random_uuid()"))
+  name              String
+  slots             Int
+  accepted          Int                 @default(0)
+  Event             Event               @relation(fields: [eventId], references: [id])
+  eventId           String
+  EventParticipator EventParticipator[]
+
+  @@index([eventId])
+}
+
+model EventCollaborator {
+  id        String         @id @default(dbgenerated("gen_random_uuid()"))
+  User      User?          @relation(fields: [userId], references: [id])
+  userId    String?
+  Event     Event?         @relation(fields: [eventId], references: [id])
+  eventId   String?
+  status    RequestStatus?
+  type      String?
+  createdAt DateTime?      @default(now())
+  updatedAt DateTime?      @updatedAt
+
+  @@index([userId, eventId])
+}
+
+model EventParticipator {
+  id             String         @id @default(dbgenerated("gen_random_uuid()"))
+  User           User?          @relation(fields: [userId], references: [id])
+  userId         String?
+  Event          Event?         @relation(fields: [eventId], references: [id])
+  eventId        String?
+  status         RequestStatus? // pending, approved, cancelled
+  hasCertificate Boolean        @default(false)
+  type           String? // to distinquish if its invite or request
+  EventRole      EventRole?     @relation(fields: [eventRoleId], references: [id])
+  createdAt      DateTime?      @default(now())
+  updatedAt      DateTime?      @updatedAt
+
+  volunteeringPoint Int?
+  eventRoleId       String?
+
+  @@index([eventId, userId, eventRoleId])
+}
+
+model Project {
+  // General
+  id            String         @id @default(dbgenerated("gen_random_uuid()"))
+  slug          String         @unique
+  type          ProjectType    @default(FUNDRAISING)
+  title         String
+  description   String
+  contact       Json?
+  startTime     DateTime?
+  endTime       DateTime?
+  enabled       Boolean
+  status        ProjectStatus?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime?      @updatedAt
+  featured      Boolean
+  //fundraising (Handiv oloh)
+  link          String?
+  goalAmount    Int?
+  currentAmount Int?
+
+  //Relation
+  Owner            User?                 @relation(fields: [ownerId], references: [id])
+  ownerId          String?
+  Collaborators    ProjectCollaborator[]
+  Donations        Donation[]
+  CategoryProjects CategoryProject[]
+  ProjectImages    ProjectImage[]
+
+  @@index([ownerId])
+}
+
+model ProjectCollaborator {
+  id        String         @id @default(dbgenerated("gen_random_uuid()"))
+  User      User?          @relation(fields: [userId], references: [id])
+  userId    String?
+  Project   Project?       @relation(fields: [projectId], references: [id])
+  projectId String?
+  status    RequestStatus?
+  type      String?
+  createdAt DateTime?      @default(now())
+  updatedAt DateTime?      @updatedAt
+
+  @@index([userId])
+  @@index([projectId])
+}
+
+model Certificate {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  number    String
+  grade     Int
+  createdAt DateTime @default(now())
+
+  volunteerName    String
+  organizationName String
+
+  Volunteer   User?   @relation("VolunteerCertificate", fields: [volunteerId], references: [id])
+  volunteerId String?
+
+  Event   Event?  @relation(fields: [eventId], references: [id])
+  eventId String?
+
+  CertificateTemplate   CertificateTemplate? @relation(fields: [certificateTemplateId], references: [id])
+  certificateTemplateId String?
+
+  @@index([volunteerId, eventId])
+}
+
+model UserSkill {
+  id      String  @id @default(dbgenerated("gen_random_uuid()"))
+  User    User?   @relation(fields: [userId], references: [id])
+  Skill   Skill?  @relation(fields: [skillId], references: [id])
+  userId  String?
+  skillId String?
+
+  @@index([skillId, userId])
+}
+
+model Skill {
+  id   String      @id @default(dbgenerated("gen_random_uuid()"))
+  name String
+  User UserSkill[]
+}
+
+model Address {
+  id           String  @id @default(dbgenerated("gen_random_uuid()"))
+  country      String
+  countryCode  String?
+  city         String
+  provinceName String
+  district     String?
+  street       String?
+  additional   String?
+  User         User?   @relation(fields: [userId], references: [id])
+  userId       String?
+
+  @@index([userId])
+}
+
+model Donation {
+  id           String    @id @default(dbgenerated("gen_random_uuid()"))
+  amount       Int
+  User         User?     @relation(fields: [userId], references: [id])
+  userId       String?
+  isPublicName Boolean   @default(false)
+  Project      Project?  @relation(fields: [projectId], references: [id])
+  projectId    String?
+  Payments     Payment[]
+  createdAt    DateTime  @default(now())
+
+  @@index([userId])
+  @@index([projectId])
+}
+
+model Payment {
+  id        String    @id @default(dbgenerated("gen_random_uuid()"))
+  amount    Int
+  invoiceId String?
+  status    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  details   Json?
+
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  Donation         Donation?       @relation(fields: [donationId], references: [id])
+  donationId       String?
+  Plan             UserPlan?       @relation(fields: [planId], references: [id])
+  planId           String?
+  BannerPosition   BannerPosition? @relation(fields: [bannerPositionId], references: [id])
+  bannerPositionId String?
+  Permit           Permit?         @relation(fields: [permitId], references: [id])
+  permitId         String?
+
+  @@index([planId, bannerPositionId, permitId, donationId])
+}
+
+model Category {
+  id               String            @id @default(dbgenerated("gen_random_uuid()"))
+  code             String            @unique
+  name             String
+  type             String?
+  CategoryProjects CategoryProject[]
+  CategoryEvents   CategoryEvent[]
+  CategoryMedias   CategoryMedia[]
+}
+
+model CategoryProject {
+  id         String    @id @default(dbgenerated("gen_random_uuid()"))
+  Project    Project?  @relation(fields: [projectId], references: [id])
+  projectId  String?
+  Category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?
+
+  @@index([projectId])
+  @@index([categoryId])
+}
+
+model CategoryEvent {
+  id         String    @id @default(dbgenerated("gen_random_uuid()"))
+  Event      Event?    @relation(fields: [eventId], references: [id])
+  eventId    String?
+  Category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?
+
+  @@index([eventId])
+  @@index([categoryId])
+}
+
+model EventImage {
+  id      String  @id @default(dbgenerated("gen_random_uuid()"))
+  Owner   Event   @relation(fields: [ownerId], references: [id])
+  ownerId String
+  path    String
+  type    String?
+
+  @@index([ownerId])
+}
+
+model ProjectImage {
+  id      String  @id @default(dbgenerated("gen_random_uuid()"))
+  Owner   Project @relation(fields: [ownerId], references: [id])
+  ownerId String
+  path    String
+  type    String?
+
+  @@index([ownerId])
+}
+
+model UserImage {
+  id      String  @id @default(dbgenerated("gen_random_uuid()"))
+  Owner   User    @relation(fields: [ownerId], references: [id])
+  ownerId String
+  path    String
+  type    String?
+
+  @@index([ownerId])
+}
+
+model Notification {
+  id         String    @id @default(dbgenerated("gen_random_uuid()"))
+  Receiver   User      @relation("Receiver", fields: [receiverId], references: [id])
+  receiverId String
+  Sender     User      @relation("Sender", fields: [senderId], references: [id])
+  senderId   String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime? @updatedAt
+  status     String?
+  link       String?
+  title      String
+  body       String?
+  type       String
+
+  @@index([receiverId])
+  @@index([senderId])
+}
+
+model Media {
+  id   String @id @default(dbgenerated("gen_random_uuid()"))
+  slug String @unique
+
+  title          String
+  body           String          @db.Text
+  Owner          User            @relation(fields: [ownerId], references: [id])
+  ownerId        String
+  createdAt      DateTime        @default(now())
+  CategoryMedias CategoryMedia[]
+  MediaImages    MediaImage[]
+  projectId      String?
+
+  @@index([ownerId])
+}
+
+model CategoryMedia {
+  id         String    @id @default(dbgenerated("gen_random_uuid()"))
+  Media      Media?    @relation(fields: [mediaId], references: [id])
+  mediaId    String?
+  Category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId String?
+
+  @@index([mediaId])
+  @@index([categoryId])
+}
+
+model MediaImage {
+  id      String  @id @default(dbgenerated("gen_random_uuid()"))
+  Owner   Media   @relation(fields: [ownerId], references: [id])
+  ownerId String
+  path    String
+  type    String?
+
+  @@index([ownerId])
+}
+
+model Banner {
+  id               String          @id @default(dbgenerated("gen_random_uuid()"))
+  path             String?
+  mobilePath       String?
+  title            String?
+  description      String?
+  link             String?
+  BannerPosition   BannerPosition? @relation(fields: [bannerPositionId], references: [id])
+  bannerPositionId String?
+  PartnerBanner    PartnerBanner?
+
+  @@index([bannerPositionId])
+}
+
+model BannerPosition {
+  id        String    @id @default(dbgenerated("gen_random_uuid()"))
+  code      String    @unique
+  label     String
+  type      String?
+  thumbnail String?
+  Banners   Banner[]
+  Payments  Payment[]
+  Permit    Permit[]
+}
+
+model UserPlan {
+  id            String  @id @default(dbgenerated("gen_random_uuid()"))
+  code          String
+  name          String?
+  description   String?
+  duration      Int
+  price         Int
+  originalPrice Int
+
+  PlanImages   PlanImage[]
+  PartnerPlans PartnerPlan[]
+  Payments     Payment[]
+}
+
+model PlanImage {
+  id      String   @id @default(dbgenerated("gen_random_uuid()"))
+  path    String?
+  type    String
+  Owner   UserPlan @relation(fields: [ownerId], references: [id])
+  ownerId String
+
+  @@index([ownerId])
+}
+
+model PartnerPlan {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  startDate DateTime
+  endDate   DateTime
+  active    Boolean  @default(false)
+  Plan      UserPlan @relation(fields: [planId], references: [id])
+  planId    String
+  User      User?
+
+  @@index([planId])
+}
+
+model CertificateTemplate {
+  id               String        @id @default(dbgenerated("gen_random_uuid()"))
+  description      String
+  shortDescription String?
+  organizationName String
+  logoPath         String?
+  Certificates     Certificate[]
+  Owner            User?         @relation(fields: [userId], references: [id])
+  userId           String?
+  Event            Event?        @relation(fields: [eventId], references: [id])
+  eventId          String?
+
+  @@index([userId, eventId])
+}
+
+model PartnerBanner {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  Banner    Banner?  @relation(fields: [bannerId], references: [id])
+  bannerId  String   @unique
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  active    Boolean
+  startDate DateTime
+  endDate   DateTime
+
+  @@index([userId])
+}
+
+model Permit {
+  id            String     @id @default(dbgenerated("gen_random_uuid()"))
+  name          String
+  description   String
+  code          String     @unique
+  price         Int
+  originalPrice Int
+  quantity      Int
+  type          PermitType
+  enabled       Boolean    @default(true)
+
+  BannerPosition   BannerPosition? @relation(fields: [bannerPositionId], references: [id])
+  bannerPositionId String?
+  Payments         Payment[]
+  PartnerPermit    PartnerPermit[]
+
+  @@index([bannerPositionId])
+}
+
+enum PermitType {
+  EVENT
+  PROJECT
+  BANNER
+}
+
+model PartnerPermit {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  Partner   User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  Permit    Permit?  @relation(fields: [permitId], references: [id])
+  permitId  String?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([permitId, userId])
+}
+
+model Country {
+  id         String  @id @default(dbgenerated("gen_random_uuid()"))
+  name       String
+  code       String
+  region     String?
+  phoneCode  String?
+  volunteers Int?    @default(0)
+}
+
+model State {
+  id          String  @id @default(dbgenerated("gen_random_uuid()"))
+  name        String
+  code        String?
+  countryCode String
+}
+
+model City {
+  id          String @id @default(dbgenerated("gen_random_uuid()"))
+  name        String
+  countryCode String
+  stateCode   String
+}

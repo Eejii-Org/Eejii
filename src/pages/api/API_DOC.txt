@@ -1,0 +1,95 @@
+API V1: simple doc
+  -Project #Owner will be Partner
+    @. creating project: POST /api/project
+    @. get list project: GET /api/project
+      # By Joined supporters Project (supporterId=[id])
+      # By Joined partners Project (partnerId=[id])
+      # By Owners Project (ownerId=[id])
+    @. editing project: PUT /api/project/[id]
+    @. getting project details : GET /api/project/[id]
+      # Will have all the details of joined Supporters and Partners or even join request from Partners and Supporters
+      # Will have the donation info and etc
+
+    @. approving supporter or partner to join with project
+      : GET /api/project/[id]/approve?(partnerId | supporterId)=[id]
+    @. declining supporter or partner to join with project
+     : GET /api/project/[id]/decline?(partnerId | supporterId)=[id]
+    @. send request to join project
+      : POST /api/project/[id]/join?(partnerId | supporterId)=[id]
+
+    @. donate to project
+      : POST /api/project/[id]/donate?(userId)=[id]
+
+    @. get all join request of Supporters or Partners for project | (same with 3.)
+      : GET /api/project/[id](?supporterRequests=true&partnerRequests=true)
+
+
+
+  -Event #Owner will be Partner
+    @. creating event: POST /api/events
+    @. get list events: GET /api/events(?status=[status]&ownerId=[id]&partnerId=[id]&supporterId=[id])
+      # By Joined supporters Project (supporterId=[id])
+      # By Joined partners Project (partnerId=[id])
+      # By Joined partners Project (volunteerId=[id])
+      # By Owners Project (ownerId=[id])
+    @. editing event: PUT /api/events/[id]
+    @. getting event details /api/events/[id]
+      # Will have all the details of joined Partners and Supporters and joined Volunteers
+
+    @. approving Volunteers, Partners, Supporters for specific role they requested to work for
+      : GET /api/events/[id]/approve?(volunteer=[id] | partner=[id] | supporter=[id])
+    @. declining Volunteers, Partners, Supporters for specific role they requested to work for
+      : GET /api/events/[id]/decline?(volunteer=[id] | partner=[id] | supporter=[id])
+    @. send request to join event
+      : POST /api/project/[id]/join?(volunteerId=[id])
+
+  -Grant Project #Owner will be Supporter
+    @. creating grant project: POST /api/grant-project
+    @. get list grant project: GET /api/grant-project
+      # By Owners grant-Project (ownerId=[id])
+    @. editing grant project: PUT /api/grant-project/[id]
+    @. getting grant project details : GET /api/grant-project/[id]
+      # Will have all the details of joined Supporters and Partners or even join request from Partners and Supporters
+      # Will have the donation info and etc
+
+    @. approving supporter or partner to join with grant project
+      : GET /api/grant-project/[id]/approve?(partnerId | supporterId)=[id]
+    @. declining supporter or partner to join with grant project
+     : GET /api/grant-project/[id]/decline?(partnerId | supporterId)=[id]
+    @. send request to join grant project
+      : POST /api/grant-project/[id]/join?(partnerId | supporterId)=[id]
+
+    @. get all join request of Supporters or Partners for grant project | (same with 3.)
+      : GET /api/grant-project/[id](?supporterRequests=true&partnerRequests=true)
+
+  -User
+    @. get profile of user: GET /api/me
+      # From clerk user backend will perform if statement to check whether user is Volunteer Partner or Supporter and return corresponding data
+      # In this profile data we will not send Project, Event, or GrantProject to help caching and response size optimization.
+      # Instead we should call /api/events, /api/project, /api/grant-project with additional queries to get desired data
+      # But small data's like Address, Skills, or Donated donations are will come in Profile api response
+
+    * Instead of using params will use these apis to create Volunteer, Partner or Supporter
+    @. create partner: POST /api/partners
+    @. create supporter: POST /api/supporters
+    @. create volunteer: POSt /api/volunteers
+    /v/dashboard
+    /p/dashboard
+    /s/dashboard
+      # After registering user will have pending status and Super admin will approve if criteria is met
+      # While pending user can be directed to it's Dashboard page but actions will not be performed. (Such as creating or joining event .etc)
+
+    * After user has requested to register as (Volunteer, supporter, or partner) admin will update the status
+    @. get partner detail: GET /api/partners/[id]?status=(approve | decline)
+    @. get supporter detail: GET /api/supporters/[id]?status=(approve | decline)
+    @. get volunteer detail: GET /api/volunteers/[id]?status=(approve | decline)
+
+    @. get partners list: GET /api/partners
+    @. get supporters list: GET /api/supporters
+    @. get volunteers detail: GET /api/volunteers
+
+    * Instead of using /api/profile for joined user's public profiles
+    @. get partner detail: GET /api/partners/[id]
+    @. get supporter detail: GET /api/supporters/[id]
+    @. get volunteer detail: GET /api/volunteers/[id]
+      # And to save or sanity from if statements and other authentication hell we will make such routes for Pages dir too.

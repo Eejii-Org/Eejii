@@ -1,0 +1,27 @@
+#! /bin/bash
+#
+# Synchronize local master branch with the upstream master.
+# Command is intended to be used when a Pull Request is merged.
+#
+
+set -e # exit if any commands returns a non-zero exit code.
+
+command -v git >/dev/null 2>&1 || { echo >&2 "git is not installed.  Aborting."; exit 1; }
+command git status >/dev/null 2>&1 || { echo >&2 "Not a git repository.  Aborting."; exit 1; }
+
+
+#
+# Fetch upstream repository changes
+#
+git fetch origin;
+
+#
+# Update local main branch with upstream changes
+#
+git rebase origin/main main;
+
+
+# #
+# # Push changes to the origin main
+# #
+# git push origin main

@@ -1,0 +1,25 @@
+.segment_root {
+  background: 'none' !important;
+}
+
+
+.segment_control {
+  &::before {
+    content: none;
+  }
+}
+
+
+.segment_label {
+  outline: '1px solid var(--mantine-color-blue-5)';
+  margin-right: '10px';
+  border-radius: '100px';
+}
+
+
+.segment_indicator {
+  border-radius: '100px';
+  background-color: 'var(--mantine-color-blue-5)';
+  outline: '2px solid var(--mantine-color-blue-5)';
+  outline-offset: -1;
+}

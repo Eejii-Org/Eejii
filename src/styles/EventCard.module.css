@@ -1,0 +1,33 @@
+.overlay {
+  position: absolute;
+  top: 220px;
+  left: 0;
+  right: 0;
+  background-color: var('--mantine-color-white');
+  overflow: hidden;
+  width: 100%;
+  transition: 0.3s ease;
+}
+
+.show {
+  display: none;
+  height: 0;
+}
+
+.container {
+  position: relative;
+  min-height: 380px;
+}
+
+.container:hover .overlay {
+  top: 85px;
+  height: 100%;
+  padding-top: 20px;
+}
+
+.container:hover .show {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  height: 100%;
+}
