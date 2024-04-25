@@ -160,18 +160,18 @@ export default function VolunteerRegisterForm() {
         if (active === 2) {
           return {
             //address
-            city:
-              values.address.city.trim().length < 2
-                ? 'Please fill in city'
-                : null,
-            provinceName:
-              values.address.provinceName.trim().length < 2
-                ? 'Please choose province'
-                : null,
-            countryCode:
-              values.address.countryCode.trim().length < 2
-                ? 'Please choose country'
-                : null,
+            // city:
+            //   values.address.city.trim().length < 2
+            //     ? 'Please fill in city'
+            //     : null,
+            // provinceName:
+            //   values.address.provinceName.trim().length < 2
+            //     ? 'Please choose province'
+            //     : null,
+            // countryCode:
+            //   values.address.countryCode.trim().length < 2
+            //     ? 'Please choose country'
+            //     : null,
             bio:
               values.bio.trim().length < 10
                 ? 'Bio must include at least 10 characters'

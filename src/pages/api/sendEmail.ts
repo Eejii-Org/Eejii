@@ -1,4 +1,4 @@
-import sendEmail from '@/lib/mailer';
+import sendEmail from '@/lib/mailer/sendEmail';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(
@@ -6,6 +6,9 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const { to, subject, html } = JSON.parse(req.body);
-  sendEmail(to, subject, html);
-  res.send(200);
+  const response = await sendEmail(to, subject, html);
+  if (response !== true) {
+    return res.status(500).json(false);
+  }
+  return res.send(response);
 }

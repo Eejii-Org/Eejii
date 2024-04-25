@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { sql } from 'kysely';
 import { z } from 'zod';
 
+import { ServerSettings } from '@/lib/server-settings';
 import type { Event, ListResponse, Pagination } from '@/lib/types';
 import { eventSchema } from '@/lib/validation/event-schema';
 
@@ -22,6 +23,8 @@ import {
   findAllQuerySchema,
   getMyEventsQuerySchema,
 } from '@/lib/validation/query-schema/eventRepositorySchema';
+import handleSendEmail from '@/lib/mailer/sendEmailHelper';
+import emailTemplate from '@/components/mail/emailTemplate';
 
 export const eventRouter = createTRPCRouter({
   findAll: publicProcedure
@@ -363,6 +366,11 @@ export const eventRouter = createTRPCRouter({
         })
         .returning(['id', 'title', 'slug', 'ownerId'])
         .executeTakeFirstOrThrow();
+      const owner = await ctx.db
+        .selectFrom('User')
+        .select('email')
+        .where('id', '=', event.ownerId)
+        .executeTakeFirstOrThrow();
 
       sendNotification({
         title: `Your request to create '#${event.title}' has been ${input.status === ProjectStatus.APPROVED ? 'approved' : 'denied'}`,
@@ -372,6 +380,32 @@ export const eventRouter = createTRPCRouter({
         senderId: ctx.userId as string,
         type: 'project_request',
       });
+
+      if (state === ProjectStatus.APPROVED) {
+        const template = emailTemplate(
+          ServerSettings.EMAIL.APPROVE_PROJECT(true, event.title).GREETINGS,
+          ServerSettings.EMAIL.APPROVE_PROJECT(true, event.title).BODY,
+          ServerSettings.EMAIL.APPROVE_PROJECT(true, event.title).NOTE,
+          ServerSettings.EMAIL.APPROVE_PROJECT(true, event.title).LABEL
+        );
+        handleSendEmail(
+          owner.email,
+          ServerSettings.EMAIL.APPROVE_PROJECT(true, event.title).SUBJECT,
+          template?.html
+        );
+      } else if (state === ProjectStatus.DENIED) {
+        const template = emailTemplate(
+          ServerSettings.EMAIL.DENY_PROJECT(true, event.title).GREETINGS,
+          ServerSettings.EMAIL.DENY_PROJECT(true, event.title).BODY,
+          ServerSettings.EMAIL.DENY_PROJECT(true, event.title).NOTE,
+          ServerSettings.EMAIL.DENY_PROJECT(true, event.title).LABEL
+        );
+        handleSendEmail(
+          owner.email,
+          ServerSettings.EMAIL.DENY_PROJECT(true, event.title).SUBJECT,
+          template?.html
+        );
+      }
       return event;
     }),
   deleteImage: privateProcedure
@@ -505,9 +539,28 @@ export const eventRouter = createTRPCRouter({
         .set({
           maxPoint: input.point,
         })
-        .returning(['id', 'slug'])
+        .returning(['id', 'slug', 'title', 'ownerId', 'maxPoint'])
+        .executeTakeFirstOrThrow();
+
+      const owner = await ctx.db
+        .selectFrom('User')
+        .select('email')
+        .where('id', '=', event.ownerId)
         .executeTakeFirstOrThrow();
       // TODO SEND EMAIL
+      const template = emailTemplate(
+        ServerSettings.EMAIL.MAX_POINT(event.title, event.maxPoint ?? 0)
+          .GREETINGS,
+        ServerSettings.EMAIL.MAX_POINT(event.title, event.maxPoint ?? 0).BODY,
+        ServerSettings.EMAIL.MAX_POINT(event.title, event.maxPoint ?? 0).NOTE,
+        ServerSettings.EMAIL.MAX_POINT(event.title, event.maxPoint ?? 0).LABEL
+      );
+      handleSendEmail(
+        owner.email,
+        ServerSettings.EMAIL.MAX_POINT(event.title, event.maxPoint ?? 0)
+          .SUBJECT,
+        template?.html
+      );
       return event;
     }),
 });

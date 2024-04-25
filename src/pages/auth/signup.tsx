@@ -8,6 +8,8 @@ import VolunteerRegisterForm from '@/components/volunteer/register/volunteer-reg
 import PartnerRegisterForm from '@/components/partner/register/partner-register-form';
 import AuthLayout from '@/components/layout/auth-layout';
 import Image from 'next/image';
+import { api } from '@/utils/api';
+import { Button, TextInput } from '@mantine/core';
 
 interface Option {
   name: string;
@@ -19,6 +21,22 @@ interface Option {
 // type SetUserType = (value: string) => void;
 
 export default function Signup() {
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isEmailSent, setIsEmailSent] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+  const [verificationCode, setVerificationCode] = useState<string | null>(null);
+  const { mutate: sendEmail, isLoading: isEmailSendLoading } =
+    api.user.sendVerifyEmail.useMutation({
+      onSuccess: () => {
+        setIsEmailSent(true);
+      },
+    });
+  const { mutate: verifyEmail, isLoading: isVerifyLoading } =
+    api.user.verifyEmail.useMutation({
+      onSuccess: () => {
+        setIsEmailVerified(true);
+      },
+    });
   const session = useSession();
   const router = useRouter();
 
@@ -111,6 +129,64 @@ export default function Signup() {
       </label>
     );
   };
+
+  if (isEmailSent && !isEmailVerified) {
+    return (
+      <AuthLayout>
+        <div className="flex items-center justify-center w-full pb-10 ">
+          <div className="flex flex-col gap-4 w-full">
+            <span className="">Verify your email</span>
+            <TextInput
+              label="Verification code"
+              name="code"
+              placeholder="Verification code"
+              onChange={e => setVerificationCode(e.currentTarget.value)}
+            />
+            <Button
+              color="primary"
+              fullWidth
+              onClick={() =>
+                verifyEmail({
+                  email: email as string,
+                  token: verificationCode as string,
+                })
+              }
+              loading={isVerifyLoading}
+            >
+              Verify email
+            </Button>
+          </div>
+        </div>
+      </AuthLayout>
+    );
+  }
+  if (!isEmailVerified) {
+    return (
+      <AuthLayout>
+        <div className="flex items-center justify-center w-full pb-10 ">
+          <div className="flex flex-col gap-4 w-full">
+            <div className="flex justify-center">
+              <span className="text-3xl">Verify your email</span>
+            </div>
+            <TextInput
+              label="Email"
+              name="email"
+              placeholder="Email"
+              onChange={e => setEmail(e.currentTarget.value)}
+            />
+            <Button
+              color="primary"
+              fullWidth
+              onClick={() => sendEmail({ email: email as string })}
+              loading={isEmailSendLoading}
+            >
+              Send email
+            </Button>
+          </div>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout>
