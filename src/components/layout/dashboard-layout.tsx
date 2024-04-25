@@ -19,6 +19,7 @@ import {
   IconChevronRight,
   IconConfetti,
   IconDoorExit,
+  IconGlobe,
   IconHome,
   IconTag,
   IconTags,
@@ -69,6 +70,12 @@ const menuItems = [
     title: 'Permits',
     href: '/admin/permits',
     icon: <IconTags />,
+    items: [],
+  },
+  {
+    title: 'Country, state and cities',
+    href: '/admin/country',
+    icon: <IconGlobe />,
     items: [],
   },
 ];

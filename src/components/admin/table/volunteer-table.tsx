@@ -1,5 +1,6 @@
-import maxPointEmail from '@/components/mail/maxPointEmail';
+import emailTemplate from '@/components/mail/emailTemplate';
 import { RequestStatus } from '@/lib/db/enums';
+import handleSendEmail from '@/lib/mailer/sendEmailHelper';
 import type { User } from '@/lib/types';
 import { api } from '@/utils/api';
 
@@ -16,36 +17,8 @@ const Row = ({ user }: { user: User }) => {
       context.volunteer.findAll.invalidate();
     },
   });
+  const template = emailTemplate('Hello', 'body');
 
-  const emailTemplate = maxPointEmail(
-    '9',
-    'lol',
-    'Lets feed stray dogs and cats'
-  );
-  function handleSendEmail() {
-    fetch('/api/sendEmail', {
-      method: 'POST',
-      body: JSON.stringify({
-        to: 'tsolmondark@gmail.com',
-        subject: emailTemplate.text,
-        html: emailTemplate.html,
-      }),
-    }).then(res => {
-      if (res.status <= 299) {
-        notifications.show({
-          title: 'Success',
-          message: 'Successfully send email',
-          color: 'green',
-        });
-      } else {
-        notifications.show({
-          title: 'Error',
-          message: 'Error while sending email',
-          color: 'red',
-        });
-      }
-    });
-  }
   return (
     <Table.Tr key={user.id as unknown as string}>
       <Table.Td>
@@ -108,7 +81,21 @@ const Row = ({ user }: { user: User }) => {
               <IconX />
             </ActionIcon>
           )}
-          <ActionIcon onClick={() => handleSendEmail()}>
+          <ActionIcon
+            onClick={() =>
+              handleSendEmail(
+                'tsolmondark@gmail.com',
+                'Some subject',
+                template.html
+              )
+                .then(() => {
+                  notifications.show({ message: 'SUCCESS' });
+                })
+                .catch(() => {
+                  notifications.show({ message: 'ERROR' });
+                })
+            }
+          >
             <IconMail />
           </ActionIcon>
         </div>

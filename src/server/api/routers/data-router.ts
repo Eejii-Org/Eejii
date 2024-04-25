@@ -1,7 +1,174 @@
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '../trpc';
+import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc';
 
 export const dataRouter = createTRPCRouter({
+  createCity: adminProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        countryCode: z.string(),
+        stateCode: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .insertInto('City')
+        .values({
+          name: input.name,
+          countryCode: input.countryCode,
+          stateCode: input.stateCode,
+        })
+        .executeTakeFirstOrThrow();
+    }),
+  createState: adminProcedure
+    .input(
+      z.object({
+        code: z.string(),
+        name: z.string(),
+        countryCode: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .insertInto('State')
+        .values({
+          name: input.name,
+          code: input.code,
+          countryCode: input.countryCode,
+        })
+        .executeTakeFirstOrThrow();
+    }),
+  createCountry: adminProcedure
+    .input(
+      z.object({
+        code: z.string(),
+        name: z.string(),
+        phoneCode: z.string().nullish(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .insertInto('Country')
+        .values({
+          name: input.name,
+          code: input.code,
+          phoneCode: input.phoneCode,
+        })
+        .executeTakeFirstOrThrow();
+    }),
+  editCity: adminProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        code: z.string(),
+        name: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .updateTable('City')
+        .where('id', '=', input.id)
+        .set({
+          name: input.name,
+        })
+        .executeTakeFirstOrThrow();
+    }),
+  editState: adminProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        code: z.string(),
+        name: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .updateTable('State')
+        .where('id', '=', input.id)
+        .set({
+          name: input.name,
+          code: input.code,
+        })
+        .executeTakeFirstOrThrow();
+    }),
+  editCountry: adminProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        code: z.string(),
+        name: z.string(),
+        phoneCode: z.string().nullish(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .updateTable('Country')
+        .where('id', '=', input.id)
+        .set({
+          name: input.name,
+          code: input.code,
+          phoneCode: input.phoneCode,
+        })
+        .executeTakeFirstOrThrow();
+    }),
+  deleteCity: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      ctx.db.transaction().execute(async trx => {
+        await trx
+          .deleteFrom('City')
+          .where('id', '=', input.id)
+          // .where(eb =>
+          //   eb.and({
+          //     'City.stateCode': input.stateCode,
+          //     'City.countryCode': input.countryCode,
+          //   })
+          // )
+          .execute();
+      });
+    }),
+  deleteState: adminProcedure
+    .input(z.object({ stateCode: z.string(), countryCode: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      ctx.db.transaction().execute(async trx => {
+        await trx
+          .deleteFrom('City')
+          .where(eb =>
+            eb.and({
+              'City.stateCode': input.stateCode,
+              'City.countryCode': input.countryCode,
+            })
+          )
+          .execute();
+        await trx
+          .deleteFrom('State')
+          .where(eb =>
+            eb.and({
+              code: input.stateCode,
+              countryCode: input.countryCode,
+            })
+          )
+          .execute();
+      });
+    }),
+  deleteCountry: adminProcedure
+    .input(z.object({ code: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      ctx.db.transaction().execute(async trx => {
+        await trx
+          .deleteFrom('City')
+          .where('countryCode', '=', input.code)
+          .execute();
+        await trx
+          .deleteFrom('State')
+          .where('countryCode', '=', input.code)
+          .execute();
+        await trx
+          .deleteFrom('Country')
+          .where('code', '=', input.code)
+          .execute();
+      });
+    }),
   getCountries: publicProcedure.query(async ({ ctx }) => {
     const countries = await ctx.db
       .selectFrom('Country')

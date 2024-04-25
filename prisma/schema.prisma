@@ -595,3 +595,13 @@ model City {
   countryCode String
   stateCode   String
 }
+
+model UserEmailVerification {
+  id         String    @id @default(dbgenerated("gen_random_uuid()"))
+  email      String
+  token      String
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime?
+  verifiedAt DateTime?
+  isVerified Boolean   @default(false)
+}

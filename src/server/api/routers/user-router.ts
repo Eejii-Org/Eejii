@@ -12,7 +12,10 @@ import {
   publicProcedure,
 } from '../trpc';
 import { hash, verify } from 'argon2';
-// import { volunteerSchema } from '@/lib/validation/volunteer-registration-schema';
+import emailTemplate from '@/components/mail/emailTemplate';
+import handleSendEmail from '@/lib/mailer/sendEmailHelper';
+import generateRandomNumber from '../helper/numberGenerator';
+import sendEmail from '@/lib/mailer/sendEmail';
 
 export const userRouter = createTRPCRouter({
   getMe: privateProcedure.query(async ({ ctx }) => {
@@ -91,55 +94,6 @@ export const userRouter = createTRPCRouter({
 
       return donations;
     }),
-  // insertUser: publicProcedure
-  //   .input(volunteerSchema)
-  //   .mutation(async ({ ctx, input }) => {
-  //     const { email, password } = input;
-
-  //     const exists = await ctx.db
-  //       .selectFrom('User')
-  //       .where('email', '=', email)
-  //       .selectAll()
-  //       .executeTakeFirst();
-
-  //     if (exists) {
-  //       throw new TRPCError({
-  //         code: 'CONFLICT',
-  //         message: 'User already exists.',
-  //       });
-  //     }
-
-  //     const hashedPassword = await hash(password);
-
-  //     const user = await ctx.db
-  //       .insertInto('User')
-  //       .values({
-  //         ...input,
-  //         password: hashedPassword,
-  //         role: Role.ROLE_USER,
-  //         requestStatus: RequestStatus.REQUEST_PENDING,
-  //       })
-  //       .returning(['email', 'password', 'type', 'id'])
-  //       .executeTakeFirstOrThrow();
-
-  //     ctx.db
-  //       .insertInto('Notification')
-  //       .values({
-  //         title: user.email + ' wants to join Eejii.org',
-  //         link: '/admin/users',
-  //         receiverId: user.id,
-  //         senderId: user.id,
-  //         status: 'new',
-  //         type: 'request',
-  //       })
-  //       .execute();
-
-  //     return {
-  //       status: 201,
-  //       message: 'Account created successfully',
-  //       result: user,
-  //     };
-  //   }),
   changeStatus: adminProcedure
     .input(z.object({ userId: z.string(), status: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -159,8 +113,71 @@ export const userRouter = createTRPCRouter({
         .updateTable('User')
         .where('User.id', '=', input.userId)
         .set({ requestStatus: state as RequestStatus })
-        .returning(['type', 'id'])
+        .returning([
+          'type',
+          'id',
+          'firstName',
+          'lastName',
+          'level',
+          'organizationName',
+          'email',
+        ])
         .executeTakeFirstOrThrow();
+
+      const username =
+        user.type === UserType.USER_PARTNER
+          ? user.organizationName
+          : user.firstName + ' ' + user.lastName;
+      let template;
+      let subject;
+      if (state === RequestStatus.REQUEST_APPROVED) {
+        subject = ServerSettings.EMAIL.APPROVE_USER(
+          user.type === UserType.USER_PARTNER ? true : false,
+          username ?? ''
+        ).SUBJECT;
+        template = emailTemplate(
+          ServerSettings.EMAIL.APPROVE_USER(
+            user.type === UserType.USER_PARTNER ? true : false,
+            username ?? ''
+          ).GREETINGS,
+          ServerSettings.EMAIL.APPROVE_USER(
+            user.type === UserType.USER_PARTNER ? true : false,
+            username ?? ''
+          ).BODY,
+          ServerSettings.EMAIL.APPROVE_USER(
+            user.type === UserType.USER_PARTNER ? true : false,
+            username ?? ''
+          ).NOTE,
+          ServerSettings.EMAIL.APPROVE_USER(
+            user.type === UserType.USER_PARTNER ? true : false,
+            username ?? ''
+          ).LABEL
+        );
+      } else if (state === RequestStatus.REQUEST_DENIED) {
+        subject = ServerSettings.EMAIL.DENY_USER(
+          user.type === UserType.USER_PARTNER ? true : false,
+          username ?? ''
+        ).SUBJECT;
+        template = emailTemplate(
+          ServerSettings.EMAIL.DENY_USER(
+            user.type === UserType.USER_PARTNER ? true : false,
+            username ?? ''
+          ).GREETINGS,
+          ServerSettings.EMAIL.DENY_USER(
+            user.type === UserType.USER_PARTNER ? true : false,
+            username ?? ''
+          ).BODY,
+          ServerSettings.EMAIL.DENY_USER(
+            user.type === UserType.USER_PARTNER ? true : false,
+            username ?? ''
+          ).NOTE,
+          ServerSettings.EMAIL.DENY_USER(
+            user.type === UserType.USER_PARTNER ? true : false,
+            username ?? ''
+          ).LABEL
+        );
+      }
+      handleSendEmail(user?.email ?? '', subject ?? '', template?.html ?? '');
 
       ctx.db
         .insertInto('Notification')
@@ -241,5 +258,94 @@ export const userRouter = createTRPCRouter({
             code: 'BAD_REQUEST',
           });
         });
+    }),
+  sendVerifyEmail: publicProcedure
+    .input(z.object({ email: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const token = generateRandomNumber(6);
+      const now = new Date();
+      now.setMinutes(now.getMinutes() + 5);
+
+      const emailExists = await ctx.db
+        .selectFrom('UserEmailVerification')
+        .selectAll()
+        .where('email', '=', input.email)
+        .executeTakeFirst();
+      let user;
+      if (!emailExists) {
+        user = await ctx.db
+          .insertInto('UserEmailVerification')
+          .values({
+            email: input.email,
+            expiresAt: now,
+            token: token.toString(),
+          })
+          .returning(['email', 'token'])
+          .executeTakeFirstOrThrow();
+      } else {
+        user = await ctx.db
+          .updateTable('UserEmailVerification')
+          .set({
+            email: input.email,
+            expiresAt: now,
+            token: token.toString(),
+          })
+          .returning(['email', 'token'])
+          .executeTakeFirstOrThrow();
+      }
+
+      const template = emailTemplate(
+        ServerSettings.EMAIL.VERIFICATION_EMAIL(user.token).GREETINGS,
+        ServerSettings.EMAIL.VERIFICATION_EMAIL(user.token).BODY,
+        ServerSettings.EMAIL.VERIFICATION_EMAIL(user.token).NOTE,
+        ServerSettings.EMAIL.VERIFICATION_EMAIL(user.token).LABEL
+      );
+      const emailRes = await sendEmail(
+        user.email,
+        ServerSettings.EMAIL.VERIFICATION_EMAIL(user.token).SUBJECT,
+        template.html
+      );
+      if (!emailRes) {
+        throw new TRPCError({
+          message: 'Sorry, error while sending email',
+          code: 'INTERNAL_SERVER_ERROR',
+        });
+      }
+    }),
+  verifyEmail: publicProcedure
+    .input(z.object({ email: z.string(), token: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const user = await ctx.db
+        .selectFrom('UserEmailVerification')
+        .selectAll()
+        .where('email', '=', input.email)
+        .executeTakeFirstOrThrow();
+      const now = new Date();
+      if (
+        typeof user.expiresAt !== 'object' ||
+        !(user.expiresAt instanceof Date)
+      ) {
+        throw new Error('Invalid expiresAt property in UserEmailVerification');
+      }
+      // Check if expiresAt is after now (inclusive)
+      if (user.expiresAt.getTime() <= now.getTime()) {
+        throw new TRPCError({
+          message: 'Email verification link has expired',
+          code: 'BAD_REQUEST',
+        });
+      }
+      if (input.token !== user.token) {
+        throw new TRPCError({
+          message: 'Email verification token is invalid',
+          code: 'BAD_REQUEST',
+        });
+      }
+      await ctx.db
+        .updateTable('UserEmailVerification')
+        .set({
+          verifiedAt: new Date(),
+          isVerified: true,
+        })
+        .executeTakeFirstOrThrow();
     }),
 });

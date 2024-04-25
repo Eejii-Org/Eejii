@@ -38,6 +38,19 @@ export const partnerRouter = createTRPCRouter({
     .input(partnerSchema)
     .mutation(async ({ input, ctx }) => {
       const { email, password } = input;
+
+      const emailVerification = await ctx.db
+        .selectFrom('UserEmailVerification')
+        .selectAll()
+        .where('email', '=', input.email)
+        .executeTakeFirst();
+      if (!emailVerification || !emailVerification?.isVerified) {
+        throw new TRPCError({
+          message: 'Email is not verified, please verify your email',
+          code: 'BAD_REQUEST',
+        });
+      }
+
       const mutation = await ctx.db.transaction().execute(async trx => {
         const exists = await trx
           .selectFrom('User')
