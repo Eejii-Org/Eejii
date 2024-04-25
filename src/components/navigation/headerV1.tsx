@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { signOut, useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 import {
   ActionIcon,
@@ -29,7 +30,6 @@ import {
   IconUserCog,
 } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
-import Link from 'next/link';
 
 const headerNav = [
   {
@@ -85,7 +85,6 @@ export const HeaderV1 = () => {
       setActive(activeItem.slug);
     }
   }, [router.asPath]);
-
   return (
     <header className={classes.header}>
       <Container size={'xl'}>

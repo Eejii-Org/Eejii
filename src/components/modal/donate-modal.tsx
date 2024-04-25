@@ -26,7 +26,12 @@ export const DonateModal = ({ label }: { label: string }) => {
   const amounts = [10000, 20000, 40000, 50000, 80000, 100000];
   return (
     <>
-      <Button onClick={open}>{label}</Button>
+      <button
+        className="px-[24px] py-[10px] text-lg font-bold hover:bg-primary/60 text-white rounded-xl bg-primary transition-all mx-5 mb-5 shadow-3xl shadow-primary md:m-0"
+        onClick={open}
+      >
+        {label}
+      </button>
       <Modal
         opened={opened}
         bg={'none'}
