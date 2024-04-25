@@ -27,7 +27,7 @@ export const DonateModal = ({ label }: { label: string }) => {
   return (
     <>
       <button
-        className="px-[24px] py-[10px] text-lg font-bold hover:bg-primary/60 text-white rounded-xl bg-primary transition-all mx-5 mb-5 shadow-3xl shadow-primary md:m-0"
+        className="px-[24px] py-[10px] text-lg font-bold hover:bg-primary/60 text-white rounded-xl bg-primary transition-all mx-5 mb-5 md:shadow-3xl md:m-0 md:ml-3 "
         onClick={open}
       >
         {label}

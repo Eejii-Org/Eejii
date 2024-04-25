@@ -3,7 +3,6 @@ import {
   IconCalendarCheck,
   IconCertificate,
   IconChevronDown,
-  IconHexagonLetterX,
   IconMenu2,
   IconUserHeart,
   IconUserHexagon,
@@ -13,6 +12,7 @@ import Link from 'next/link';
 import { DonateModal } from '../modal/donate-modal';
 import { useRef, useState } from 'react';
 import Image from 'next/image';
+import ClosingIconX from '../icons/closingiconx';
 
 const links = [
   {
@@ -63,18 +63,18 @@ export const PublicHeader = () => {
           onClick={() => setIsNavOpened(prevState => !prevState)}
           className="md:hidden transition-all"
         >
-          {isNavOpened ? <IconHexagonLetterX /> : <IconMenu2 />}
+          {isNavOpened ? <ClosingIconX /> : <IconMenu2 />}
         </button>
 
         <div
-          className={`bg-white flex-col gap-1 right-0 rounded top-[80px] border z-10 w-full absolute ${isNavOpened ? 'flex' : 'hidden'} md:flex md:flex-row md:static md:border-none md:w-auto`}
+          className={`bg-white flex-col gap-2 right-0 rounded top-[80px] border z-10 w-full absolute ${isNavOpened ? 'flex' : 'hidden'} md:flex md:flex-row md:static md:border-none md:w-auto`}
         >
           {links.map((link, index) => {
             if (link.label == 'Платформ') {
               return (
                 <button
                   onClick={() => setIsDropdownOpened(prevState => !prevState)}
-                  className="px-[24px] py-[12px] text-lg font-bold hover:bg-black/5 rounded-xl relative transition-all text-left"
+                  className="px-[24px] py-[12px] text-lg font-bold hover:bg-black/5 rounded-xl relative transition-all flex flex-col gap-1 text-left"
                   onMouseOver={() => {
                     setIsDropdownOpened(true);
                     clearTimeout(timeOutRef.current);
@@ -86,20 +86,22 @@ export const PublicHeader = () => {
                   }}
                   key={index}
                 >
-                  {link.label}
-                  <IconChevronDown
-                    className={`inline transition-all ${isDropdownOpened && 'rotate-180'}`}
-                    width="18px"
-                    height="18px"
-                  />
+                  <div>
+                    {link.label}
+                    <IconChevronDown
+                      className={`inline transition-all ${isDropdownOpened && 'rotate-180'}`}
+                      width="18px"
+                      height="18px"
+                    />
+                  </div>
                   <div
-                    className={`md:absolute bottom-0 pt-2 md:-bottom-3 md:p-5 md:left-1/2 md:translate-y-full w-full md:w-[700px] md:-translate-x-1/2 rounded-xl border-none z-11 md:shadow md:bg-white ${isDropdownOpened ? 'grid md:grid-cols-2' : 'hidden'} md:border`}
+                    className={`md:absolute bottom-0 pt-2 md:-bottom-3 md:p-5 md:left-1/2 md:translate-y-full w-full md:w-[700px] md:-translate-x-1/2 rounded-xl border-none z-11 md:shadow md:bg-white ${isDropdownOpened ? 'grid sm:grid-cols-2' : 'hidden'} md:border`}
                   >
                     {link.links?.map((l, i) => (
                       <Link
                         href={l.link}
                         key={i}
-                        className="flex items-center rounded-xl px-5  py-1 md:py-3 gap-5 font-normal hover:bg-black/5 transition-all"
+                        className="flex  items-center rounded-xl px-3 py-1 md:py-3 gap-5 font-normal hover:bg-black/5 transition-all"
                       >
                         <div className="border p-2 rounded-xl">{l.icon}</div>
                         {l.label}
