@@ -46,7 +46,7 @@ export const PublicHeader = () => {
   const [isNavOpened, setIsNavOpened] = useState(false);
 
   return (
-    <header className="bg-white relative">
+    <header className="bg-white fixed w-full">
       <div className="container mx-auto flex flex-row justify-between py-[21px] items-center">
         <Link href="/">
           <div className="relative w-[168px] h-[42px]">
@@ -65,65 +65,66 @@ export const PublicHeader = () => {
         >
           {isNavOpened ? <ClosingIconX /> : <IconMenu2 />}
         </button>
-
-        <div
-          className={`bg-white flex-col gap-2 right-0 rounded top-[80px] border z-10 w-full absolute ${isNavOpened ? 'flex' : 'hidden'} md:flex md:flex-row md:static md:border-none md:w-auto`}
-        >
-          {links.map((link, index) => {
-            if (link.label == 'Платформ') {
-              return (
-                <button
-                  onClick={() => setIsDropdownOpened(prevState => !prevState)}
-                  className="px-[24px] py-[12px] text-lg font-bold hover:bg-black/5 rounded-xl relative transition-all flex flex-col gap-1 text-left"
-                  onMouseOver={() => {
-                    setIsDropdownOpened(true);
-                    clearTimeout(timeOutRef.current);
-                  }}
-                  onMouseLeave={() => {
-                    timeOutRef.current = setTimeout(() => {
-                      setIsDropdownOpened(false);
-                    }, 400);
-                  }}
-                  key={index}
-                >
-                  <div>
-                    {link.label}
-                    <IconChevronDown
-                      className={`inline transition-all ${isDropdownOpened && 'rotate-180'}`}
-                      width="18px"
-                      height="18px"
-                    />
-                  </div>
-                  <div
-                    className={`md:absolute bottom-0 pt-2 md:-bottom-3 md:p-5 md:left-1/2 md:translate-y-full w-full md:w-[700px] md:-translate-x-1/2 rounded-xl border-none z-11 md:shadow md:bg-white ${isDropdownOpened ? 'grid sm:grid-cols-2' : 'hidden'} md:border`}
+        <div className="absolute right-0 top-[80px] w-full md:w-auto md:static">
+          <div
+            className={`bg-white flex-col gap-2 container rounded border z-10 ${isNavOpened ? 'flex' : 'hidden'} md:flex md:flex-row md:static md:border-none md:w-auto`}
+          >
+            {links.map((link, index) => {
+              if (link.label == 'Платформ') {
+                return (
+                  <button
+                    onClick={() => setIsDropdownOpened(prevState => !prevState)}
+                    className="transition all duration-500 ease-out px-[24px] py-[12px] text-lg font-semibold md:hover:bg-black/5 rounded-xl relative flex flex-col gap-1 text-left"
+                    // onMouseOver={() => {
+                    //   setIsDropdownOpened(true);
+                    //   clearTimeout(timeOutRef.current);
+                    // }}
+                    // onMouseLeave={() => {
+                    //   timeOutRef.current = setTimeout(() => {
+                    //     setIsDropdownOpened(false);
+                    //   }, 400);
+                    // }}
+                    key={index}
                   >
-                    {link.links?.map((l, i) => (
-                      <Link
-                        href={l.link}
-                        key={i}
-                        className="flex  items-center rounded-xl px-3 py-1 md:py-3 gap-5 font-normal hover:bg-black/5 transition-all"
-                      >
-                        <div className="border p-2 rounded-xl">{l.icon}</div>
-                        {l.label}
-                      </Link>
-                    ))}
-                  </div>
-                </button>
-              );
-            }
-            if (link.label === 'Donate') {
-              return <DonateModal label={link.label} key={link.label} />;
-            } else
-              return (
-                <Link
-                  key={index}
-                  href={link.link}
-                  className="px-[24px] py-[12px] text-lg font-bold hover:bg-black/5 rounded-xl transition-all"
-                >
-                  {link.label}
-                </Link>
-              );
-          })}
+                    <div>
+                      {link.label}
+                      <IconChevronDown
+                        className={`inline transition-all ${isDropdownOpened && 'rotate-180'}`}
+                        width="18px"
+                        height="18px"
+                      />
+                    </div>
+                    <div
+                      className={`md:absolute bottom-0 pt-2 md:-bottom-3 md:p-5 md:left-1/2 md:translate-y-full transition-all duration-500 ease-out w-full md:w-[700px] md:-translate-x-1/2 rounded-xl border-none z-10 md:shadow md:bg-white ${isDropdownOpened ? 'grid sm:grid-cols-2' : 'hidden'} md:border`}
+                    >
+                      {link.links?.map((l, i) => (
+                        <Link
+                          href={l.link}
+                          key={i}
+                          className="flex  items-center rounded-xl px-3 py-1 md:py-3 gap-5 font-medium md:hover:bg-black/5 transition-all"
+                        >
+                          <div className="border p-2 rounded-xl">{l.icon}</div>
+                          {l.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </button>
+                );
+              }
+              if (link.label === 'Donate') {
+                return <DonateModal label={link.label} key={link.label} />;
+              } else
+                return (
+                  <Link
+                    key={index}
+                    href={link.link}
+                    className="px-[24px] py-[12px] text-lg font-semibold md:hover:bg-black/5 rounded-xl transition-all"
+                  >
+                    {link.label}
+                  </Link>
+                );
+            })}
+          </div>
         </div>
       </div>
     </header>
