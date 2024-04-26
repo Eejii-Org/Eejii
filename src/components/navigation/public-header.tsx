@@ -10,7 +10,7 @@ import {
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { DonateModal } from '../modal/donate-modal';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import ClosingIconX from '../icons/closingiconx';
 
@@ -42,20 +42,18 @@ const links = [
 
 export const PublicHeader = () => {
   const [isDropdownOpened, setIsDropdownOpened] = useState(false);
-  const timeOutRef: any = useRef();
   const [isNavOpened, setIsNavOpened] = useState(false);
 
   return (
-    <header className="bg-white fixed w-full">
+    <header className="bg-white fixed w-full z-50">
       <div className="container mx-auto flex flex-row justify-between py-[21px] items-center">
         <Link href="/">
           <div className="relative w-[168px] h-[42px]">
             <Image
               src="/images/home/foundation_logo.jpg"
               alt="foundation Logo"
-              layout="fill"
+              fill
               objectFit="contain"
-              className="p-0 m-0"
             />
           </div>
         </Link>
@@ -75,15 +73,6 @@ export const PublicHeader = () => {
                   <button
                     onClick={() => setIsDropdownOpened(prevState => !prevState)}
                     className="transition all duration-500 ease-out px-[24px] py-[12px] text-lg font-semibold md:hover:bg-black/5 rounded-xl relative flex flex-col gap-1 text-left"
-                    // onMouseOver={() => {
-                    //   setIsDropdownOpened(true);
-                    //   clearTimeout(timeOutRef.current);
-                    // }}
-                    // onMouseLeave={() => {
-                    //   timeOutRef.current = setTimeout(() => {
-                    //     setIsDropdownOpened(false);
-                    //   }, 400);
-                    // }}
                     key={index}
                   >
                     <div>
