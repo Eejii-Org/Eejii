@@ -1,94 +1,112 @@
-import { Container, SimpleGrid } from '@mantine/core';
 import Link from 'next/link';
-import { api } from '@/utils/api';
 import { IconBrandFacebook, IconBrandInstagram } from '@tabler/icons-react';
+import Image from 'next/image';
 
 export const PublicFooter = () => {
-  const { data: bannerLogo } = api.banner.findAll.useQuery({
-    positionCode: 'banner_main_logo',
-    limit: 1,
-  });
-  const bannerMain = bannerLogo
-    ? process.env.NEXT_PUBLIC_AWS_PATH + '/' + bannerLogo.banners[0]?.path
-    : '';
-  return (
-    <Container p={20} size={'xl'}>
-      <SimpleGrid cols={{ base: 1, md: 2, lg: 4 }} pt={40}>
-        <div>
-          <img src={bannerMain} alt="mainLogo" />
-        </div>
-        <div className="leading-9">
-          <h6 className="pb-4 text-xl font-bold">Шуурхай холбоос</h6>
-          <Link href="#">
-            <ul>Төсөл хөтөлбөрүүд</ul>
-          </Link>
-          <Link href="#">
-            <ul>Арга хэмжээ</ul>
-          </Link>
-          <Link href="#">
-            <ul>Сайн дурын ажил</ul>
-          </Link>
-          <Link href="#">
-            <ul>Медиа</ul>
-          </Link>
-          <Link href="#">
-            <ul>Бидний тухай</ul>
-          </Link>
-        </div>
-        <div className="leading-9">
-          <h6 className="pb-4 text-xl font-bold">Үйлчилгээ</h6>
-          <Link href="#">
-            <ul>Дэмжигч</ul>
-          </Link>
-          <Link href="#">
-            <ul>Хамтрагч</ul>
-          </Link>
-          <Link href="#">
-            <ul>Сайн дурын ажилтан</ul>
-          </Link>
-        </div>
-        <div className="leading-9">
-          <h6 className="pb-4 text-xl font-bold">Холбогдох</h6>
-          <Link href="#">
-            <ul>Сүхбаатар дүүрэг, express tower нэгдүгээр давхар</ul>
-          </Link>
-          <Link href="#">
-            <ul>Монгол улс,Улаанбаатар хот</ul>
-          </Link>
-          <Link href="#">
-            <ul>+975 7714-1001</ul>
-          </Link>
-          <Link href="#">
-            <ul>info@eejii.org</ul>
-          </Link>
-          <Link href="#">
-            <ul>volunteermongolia.com</ul>
-          </Link>
-        </div>
-      </SimpleGrid>
-      <div>
-        <div className="m-auto flex w-24 items-center justify-between pb-9 pt-20">
-          <Link
-            href="#"
-            className="bg-brand400 fill-brand450 text-brand450 rounded-full border border-transparent p-1.5"
-          >
-            <IconBrandFacebook />
-          </Link>
-          <Link
-            href="#"
-            className="bg-brand400 text-brand450 rounded-full p-1.5"
-          >
-            <IconBrandInstagram />
-          </Link>
-        </div>
+  const FooterItems = [
+    {
+      label: 'Шуурхай холбоос',
+      links: [
+        { link: '/projects', label: 'Төсөл хөтөлбөрүүд' },
+        { link: '/events', label: 'Арга Хэмжээ' },
+        { link: '/volunteering', label: 'Сайн дурын ажил' },
+        { link: '/media', label: 'Медиа' },
+        { link: '/about', label: 'Бидний тухай' },
+      ],
+    },
+    {
+      label: 'Үйлчилгээ',
+      links: [
+        { link: '/supporters', label: 'Дэмжигч' },
+        { link: '/partners', label: 'Хамтрагч' },
+        { link: '/volunteers', label: 'Сайн дурын ажилтан' },
+      ],
+    },
+    {
+      label: 'Холбогдох',
+      links: [
+        { link: '#', label: '+9757714-1001' },
+        { link: '#', label: 'info@eejii.org' },
+        { link: '#', label: 'volunteermongolia.com', target: '_blank' },
+        {
+          link: 'https://maps.app.goo.gl/nMybb9Xa8o5BiRkM9',
+          label:
+            'Монгол Улс, Улаанбаатар хот, Сүхбаатар дүүрэг, Express Tower нэгдүгээр давхар, ',
+          target: '_blank',
+          leading: '6',
+        },
+      ],
+    },
+  ];
 
-        <div className="h-16 text-center">
-          <p>
-            Энэхүү сан нь ❤ “ЭЭЖИЙ ЕРТӨНЦ” НҮТББ-ын өмч бөгөөд бүх эрх ©
-            хуулиар хамгаалагдсан болно
-          </p>
+  const mapItems = FooterItems.map(item => {
+    const mapLinks = item.links.map(link => (
+      <Link
+        href={link.link}
+        target={link?.target}
+        key={link.label}
+        className={`block leading-${link.leading}`}
+      >
+        {link.label}
+      </Link>
+    ));
+
+    return (
+      <div
+        key={item.label}
+        className={`leading-9 ${item.label == 'Холбогдох' && 'hidden md:block'}`}
+      >
+        <h6 className="pb-4 md:text-[18px] font-bold uppercase text-black">
+          {item.label}
+        </h6>
+        {mapLinks}
+        {item.label == 'Шуурхай холбоос' && (
+          <div className="border-b-2 border-black/2 w-[130px] mx-auto md:hidden"></div>
+        )}
+      </div>
+    );
+  });
+
+  return (
+    <footer>
+      <div className="container pt-[24px] md:pt-[90px] pb-[65px]">
+        <div className="grid text-black/70 md:grid-cols-2 lg:grid-cols-4 gap-[24px] md:gap-[84px] text-center md:text-left">
+          <div className="mx-auto md:m-0">
+            <Image
+              src="/images/logo/World Full Of Love.png"
+              width={179}
+              height={179}
+              alt="mainLogo"
+            />
+          </div>
+          {mapItems}
+        </div>
+        <div>
+          <div className="flex items-center justify-center pb-[40px] pt-[80px] md:pt-[170px]">
+            <Link
+              href="https://www.facebook.com/eejii.org"
+              target="_blank"
+              className="bg-brand400 fill-brand450 text-brand450 rounded-full border border-transparent p-[4px]"
+            >
+              <IconBrandFacebook width={30} height={30} />
+            </Link>
+            <Link
+              href="https://www.instagram.com/mother_project_mn?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+              target="_blank"
+              className="bg-brand400 text-brand450 rounded-full p-[4px]"
+            >
+              <IconBrandInstagram width={30} height={30} />
+            </Link>
+          </div>
+
+          <div className="text-center">
+            <p className="text-md">
+              Энэхүү сан нь ❤ “ЭЭЖИЙ ЕРТӨНЦ” НҮТББ-ын өмч бөгөөд бүх эрх ©
+              хуулиар хамгаалагдсан болно
+            </p>
+          </div>
         </div>
       </div>
-    </Container>
+    </footer>
   );
 };
