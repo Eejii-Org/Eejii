@@ -8,7 +8,7 @@ export default function Document() {
       <Head>
         <ColorSchemeScript defaultColorScheme="auto" />
       </Head>
-      <body>
+      <body className="gip">
         <Main />
         <Counter />
         <NextScript />

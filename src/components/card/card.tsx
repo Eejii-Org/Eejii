@@ -47,9 +47,11 @@ export const Card = (props: CardPropsType) => {
           >
             <Image
               src={
-                process.env.NEXT_PUBLIC_AWS_PATH +
-                  '/' +
-                  cardData?.Images?.[0]?.path || ''
+                cardData?.Images?.[0]?.path
+                  ? process.env.NEXT_PUBLIC_AWS_PATH +
+                    '/' +
+                    cardData?.Images?.[0]?.path
+                  : '/images/placeholder.svg'
               }
               fill
               onError={event => {

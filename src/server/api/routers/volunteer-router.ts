@@ -34,6 +34,19 @@ export const volunteerRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { email, password } = input;
 
+      const emailVerification = await ctx.db
+        .selectFrom('UserEmailVerification')
+        .selectAll()
+        .where('email', '=', input.email)
+        .executeTakeFirst();
+
+      if (!emailVerification || !emailVerification?.isVerified) {
+        throw new TRPCError({
+          message: 'Email is not verified, please verify your email',
+          code: 'BAD_REQUEST',
+        });
+      }
+
       const mutation = await ctx.db.transaction().execute(async trx => {
         const exists = await trx
           .selectFrom('User')
@@ -95,7 +108,30 @@ export const volunteerRouter = createTRPCRouter({
           .set(eb => ({
             volunteers: eb('volunteers', '+', 1),
           }))
-          .execute();
+          .executeTakeFirst();
+
+        if (country) {
+          trx
+            .insertInto('Address')
+            .values({
+              provinceName: input.address.provinceName,
+              country: country?.name ?? input.address.countryCode,
+              countryCode: input.address.countryCode,
+              city: input.address.city,
+              district: input.address.district,
+              street: input.address.street,
+              userId: user?.id,
+            })
+            .execute();
+
+          trx
+            .updateTable('Country')
+            .where('code', '=', input.address.countryCode)
+            .set(eb => ({
+              volunteers: eb('volunteers', '+', 1),
+            }))
+            .execute();
+        }
 
         trx
           .insertInto('Notification')
@@ -184,7 +220,6 @@ export const volunteerRouter = createTRPCRouter({
       });
       input.skills.forEach(skillId => {
         const isExists = existsArr.find(s => s.id === skillId);
-        console.log(isExists);
         if (!isExists) {
           ctx.db
             .insertInto('UserSkill')

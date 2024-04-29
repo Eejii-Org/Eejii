@@ -17,7 +17,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
   return (
     <>
       {isVolunteer ? <HeaderV1 /> : <PublicHeader />}
-      <div className="bg-[#FBFBFB]">{children}</div>
+      <div className="bg-[#FBFBFB] pt-[84px] md:pt-[90px]">{children}</div>
       <PublicFooter />
     </>
   );
