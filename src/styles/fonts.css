@@ -1,147 +1,162 @@
-/* Poppins/Poppins-Black.ttf */
+/* GIP-Black */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-Black.ttf') format('truetype');
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-Black.otf') format('opentype');
   font-weight: 900;
   font-style: normal;
 }
 
-/* Poppins/Poppins-BlackItalic.ttf */
+/* GIP-BlackItalic */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-BlackItalic.ttf') format('truetype');
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-BlackItalic.otf') format('opentype');
   font-weight: 900;
   font-style: italic;
 }
 
-/* Poppins/Poppins-Bold.ttf */
+/* GIP-Bold */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-Bold.ttf') format('truetype');
-  font-weight: bold;
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-Bold.otf') format('opentype');
+  font-weight: 700;
   font-style: normal;
 }
 
-/* Poppins/Poppins-BoldItalic.ttf */
+/* GIP-BoldItalic */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-BoldItalic.ttf') format('truetype');
-  font-weight: bold;
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-BoldItalic.otf') format('opentype');
+  font-weight: 700;
   font-style: italic;
 }
 
-/* Poppins/Poppins-ExtraBold.ttf */
+/* GIP-ExtraBold */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-ExtraBold.ttf') format('truetype');
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-ExtraBold.otf') format('opentype');
   font-weight: 800;
   font-style: normal;
 }
 
-/* Poppins/Poppins-ExtraBoldItalic.ttf */
+/* GIP-ExtraBoldItalic */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-ExtraBoldItalic.ttf') format('truetype');
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-ExtraBoldItalic.otf') format('opentype');
   font-weight: 800;
   font-style: italic;
 }
 
-/* Poppins/Poppins-ExtraLight.ttf */
+/* GIP-Heavy */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-ExtraLight.ttf') format('truetype');
-  font-weight: 200;
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-Heavy.otf') format('opentype');
+  font-weight: 900;
   font-style: normal;
 }
 
-/* Poppins/Poppins-ExtraLightItalic.ttf */
+/* GIP-HeavyItalic */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-ExtraLightItalic.ttf') format('truetype');
-  font-weight: 200;
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-HeavyItalic.otf') format('opentype');
+  font-weight: 900;
   font-style: italic;
 }
 
-/* Poppins/Poppins-Italic.ttf */
+/* GIP-Light */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-Italic.ttf') format('truetype');
-  font-weight: normal;
-  font-style: italic;
-}
-
-/* Poppins/Poppins-Light.ttf */
-@font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-Light.ttf') format('truetype');
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-Light.otf') format('opentype');
   font-weight: 300;
   font-style: normal;
 }
 
-/* Poppins/Poppins-LightItalic.ttf */
+/* GIP-LightItalic */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-LightItalic.ttf') format('truetype');
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-LightItalic.otf') format('opentype');
   font-weight: 300;
   font-style: italic;
 }
 
-/* Poppins/Poppins-Medium.ttf */
+/* GIP-Medium */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-Medium.ttf') format('truetype');
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-Medium.otf') format('opentype');
   font-weight: 500;
   font-style: normal;
 }
 
-/* Poppins/Poppins-MediumItalic.ttf */
+/* GIP-MediumItalic */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-MediumItalic.ttf') format('truetype');
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-MediumItalic.otf') format('opentype');
   font-weight: 500;
   font-style: italic;
 }
 
-/* Poppins/Poppins-Regular.ttf */
+/* GIP-Regular */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-Regular.ttf') format('truetype');
-  font-weight: normal;
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-Regular.otf') format('opentype');
+  font-weight: 400;
   font-style: normal;
 }
 
-/* Poppins/Poppins-SemiBold.ttf */
+/* GIP-RegularItalic */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-SemiBold.ttf') format('truetype');
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-RegularItalic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* GIP-SemiBold */
+@font-face {
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-SemiBold.otf') format('opentype');
   font-weight: 600;
   font-style: normal;
 }
 
-/* Poppins/Poppins-SemiBoldItalic.ttf */
+/* GIP-SemiBoldItalic */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-SemiBoldItalic.ttf') format('truetype');
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-SemiBoldItalic.otf') format('opentype');
   font-weight: 600;
   font-style: italic;
 }
 
-/* Poppins/Poppins-Thin.ttf */
+/* GIP-Thin */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-Thin.ttf') format('truetype');
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-Thin.otf') format('opentype');
   font-weight: 100;
   font-style: normal;
 }
 
-/* Poppins/Poppins-ThinItalic.ttf */
+/* GIP-ThinItalic */
 @font-face {
-  font-family: 'Poppins', sans-serif;
-  src: url('/fonts/Poppins/Poppins-ThinItalic.ttf') format('truetype');
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-ThinItalic.otf') format('opentype');
   font-weight: 100;
   font-style: italic;
 }
 
-.poppins {
-  font-family: 'Poppins', sans-serif;
+/* GIP-UltraLight */
+@font-face {
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-UltraLight.otf') format('opentype');
+  font-weight: 200;
+  font-style: normal;
+}
+
+/* GIP-UltraLightItalic */
+@font-face {
+  font-family: 'GIP';
+  src: url('/fonts/GIP/GIP-UltraLightItalic.otf') format('opentype');
+  font-weight: 200;
+  font-style: italic;
+}
+.gip {
+  font-family: 'GIP';
 }

@@ -127,6 +127,7 @@ module.exports = {
         specialBG: "url('/images/projectss/speacialBG.png')",
         partnerBG: "url('/images/partner/partnerBG.png')",
       },
+      boxShadow: { '3xl': '0px 0px 20px 0px #0071BB3D' },
     },
   },
   plugins: [require('tailwindcss-animate')],

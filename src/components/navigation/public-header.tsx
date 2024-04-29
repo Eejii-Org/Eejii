@@ -1,237 +1,121 @@
-// import PublicLayout from '@/components/layout/public-layout';
-
-import classes from '@/styles/Header.module.css';
-import {
-  Box,
-  Burger,
-  Button,
-  Center,
-  Collapse,
-  Container,
-  Divider,
-  Drawer,
-  Group,
-  Image,
-  ScrollArea,
-  SimpleGrid,
-  Text,
-  ThemeIcon,
-  UnstyledButton,
-  rem,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
 import {
   IconBalloon,
   IconCalendarCheck,
   IconCertificate,
   IconChevronDown,
+  IconMenu2,
   IconUserHeart,
   IconUserHexagon,
   IconUsersGroup,
 } from '@tabler/icons-react';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { DonateModal } from '../modal/donate-modal';
-
-const HoverCard = dynamic(
-  () => import('@mantine/core').then(el => el.HoverCard),
-  {
-    loading: () => <p>Loading...</p>,
-    ssr: false,
-  }
-);
-const HoverCardTarget = dynamic(
-  () => import('@mantine/core').then(el => el.HoverCardTarget),
-  {
-    loading: () => <p>Loading...</p>,
-    ssr: false,
-  }
-);
-const HoverCardDropdown = dynamic(
-  () => import('@mantine/core').then(el => el.HoverCardDropdown),
-  {
-    loading: () => <p>Loading...</p>,
-    ssr: false,
-  }
-);
+import { useState } from 'react';
+import Image from 'next/image';
+import ClosingIconX from '../icons/closingiconx';
 
 const links = [
   {
     link: '#1',
-    label: 'Platform',
+    label: 'Платформ',
     links: [
-      { link: '/projects', label: 'Projects', icon: IconCalendarCheck },
-      { link: '/events', label: 'Events', icon: IconBalloon },
-      { link: '/volunteering', label: 'Volunteering', icon: IconCertificate },
-      { link: '/supporters', label: 'Supporters', icon: IconUserHexagon },
-      { link: '/partners', label: 'Partners', icon: IconUsersGroup },
-      { link: '/volunteers', label: 'Volunteers', icon: IconUserHeart },
+      { link: '/projects', label: 'Projects', icon: <IconCalendarCheck /> },
+      { link: '/events', label: 'Events', icon: <IconBalloon /> },
+      {
+        link: '/volunteering',
+        label: 'Volunteering',
+        icon: <IconCertificate />,
+      },
+      { link: '/supporters', label: 'Supporters', icon: <IconUserHexagon /> },
+      { link: '/partners', label: 'Partners', icon: <IconUsersGroup /> },
+      { link: '/volunteers', label: 'Volunteers', icon: <IconUserHeart /> },
     ],
   },
   {
     link: '/media',
-    label: 'Media',
+    label: 'Медиа',
   },
-  { link: '/about', label: 'About' },
-  { link: '/auth', label: 'Login' },
+  { link: '/about', label: 'Бидний тухай' },
+  { link: '/auth', label: 'Нэвтрэх' },
   { link: '/projects', label: 'Donate' },
 ];
 
 export const PublicHeader = () => {
-  const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
-    useDisclosure(false);
-  const [linksOpened, { toggle: toggleLinks }] = useDisclosure(false);
-
-  const items = links.map(link => {
-    const menuItems = link.links?.map(item => (
-      <UnstyledButton
-        component={Link}
-        href={item.link}
-        className={classes.subLink}
-        key={item.label}
-      >
-        <Group wrap="nowrap" align="flex-start">
-          <ThemeIcon size={34} variant="default" radius="md">
-            <item.icon style={{ width: rem(22), height: rem(22) }} />
-          </ThemeIcon>
-          <div>
-            <Text size="sm" fw={500}>
-              {item.label}
-            </Text>
-          </div>
-        </Group>
-      </UnstyledButton>
-    ));
-
-    if (menuItems) {
-      return (
-        <HoverCard
-          width={600}
-          key={link.label}
-          position="bottom"
-          radius="md"
-          shadow="md"
-          withinPortal
-        >
-          <HoverCardTarget>
-            <a href="#" className={classes.link}>
-              <Center inline>
-                <Box component="span" mr={5}>
-                  {link.label}
-                </Box>
-                <IconChevronDown style={{ width: rem(16), height: rem(16) }} />
-              </Center>
-            </a>
-          </HoverCardTarget>
-
-          <HoverCardDropdown style={{ overflow: 'hidden' }}>
-            <SimpleGrid cols={2} spacing={0}>
-              {menuItems}
-            </SimpleGrid>
-          </HoverCardDropdown>
-        </HoverCard>
-      );
-    }
-
-    if (link.label === 'Donate') {
-      return <DonateModal label={link.label} key={link.label} />;
-    }
-    return (
-      <Link key={link.label} href={link.link} className={classes.link}>
-        {link.label}
-      </Link>
-    );
-  });
+  const [isDropdownOpened, setIsDropdownOpened] = useState(false);
+  const [isNavOpened, setIsNavOpened] = useState(false);
 
   return (
-    <header className={classes.header}>
-      <Container size="xl">
-        <div className={classes.inner}>
-          <Link href={'/'}>
+    <header className="bg-white fixed w-full z-50">
+      <div className="container mx-auto flex flex-row justify-between py-[21px] items-center">
+        <Link href="/">
+          <div className="relative w-[168px] h-[42px]">
             <Image
               src="/images/home/foundation_logo.jpg"
               alt="foundation Logo"
-              h={70}
-              w={200}
-              fit="contain"
+              fill
+              objectFit="contain"
             />
-          </Link>
-          <Group gap={5} visibleFrom="sm">
-            {items}
-          </Group>
-          <Burger
-            opened={drawerOpened}
-            onClick={toggleDrawer}
-            size="sm"
-            hiddenFrom="sm"
-          />
-        </div>
-      </Container>
-      <Drawer
-        opened={drawerOpened}
-        onClose={closeDrawer}
-        size="100%"
-        padding="md"
-        title="Navigation"
-        hiddenFrom="sm"
-        zIndex={1000000}
-      >
-        <ScrollArea h={`calc(100vh - ${rem(80)})`} mx="-md">
-          <Divider my="sm" />
-          {links.map(link => {
-            if (link.links) {
-              return (
-                <UnstyledButton key={link.label} w={'100%'}>
-                  <UnstyledButton
-                    className={classes.link}
-                    onClick={toggleLinks}
+          </div>
+        </Link>
+        <button
+          onClick={() => setIsNavOpened(prevState => !prevState)}
+          className="md:hidden transition-all"
+        >
+          {isNavOpened ? <ClosingIconX /> : <IconMenu2 />}
+        </button>
+        <div className="absolute right-0 top-[80px] w-full md:w-auto md:static">
+          <div
+            className={`bg-white flex-col gap-2 container rounded border z-10 ${isNavOpened ? 'flex' : 'hidden'} md:flex md:flex-row md:static md:border-none md:w-auto`}
+          >
+            {links.map((link, index) => {
+              if (link.label == 'Платформ') {
+                return (
+                  <button
+                    onClick={() => setIsDropdownOpened(prevState => !prevState)}
+                    className="transition all duration-500 ease-out px-[24px] py-[12px] text-lg font-semibold md:hover:bg-black/5 rounded-xl relative flex flex-col gap-1 text-left"
+                    key={index}
                   >
-                    <Center inline>
-                      <Box component="span" mr={5}>
-                        {link.label}
-                      </Box>
+                    <div>
+                      {link.label}
                       <IconChevronDown
-                        style={{ width: rem(16), height: rem(16) }}
+                        className={`inline transition-all ${isDropdownOpened && 'rotate-180'}`}
+                        width="18px"
+                        height="18px"
                       />
-                    </Center>
-                  </UnstyledButton>
-                  <Collapse in={linksOpened}>
-                    {link.links.map(l => (
-                      <UnstyledButton className={classes.subLink} key={l.label}>
-                        <Group wrap="nowrap" align="flex-start">
-                          <ThemeIcon size={34} variant="default" radius="md">
-                            <l.icon
-                              style={{ width: rem(22), height: rem(22) }}
-                            />
-                          </ThemeIcon>
-                          <div>
-                            <Text size="sm" fw={500}>
-                              {l.label}
-                            </Text>
-                            {/* <Text size="xs" c="dimmed">
-                              {item.description}
-                            </Text> */}
-                          </div>
-                        </Group>
-                      </UnstyledButton>
-                    ))}
-                  </Collapse>
-                </UnstyledButton>
-              );
-            }
-            return (
-              <Link key={link.label} href={link.link} className={classes.link}>
-                {link.label}
-              </Link>
-            );
-          })}
-          <Divider my="sm" />
-          <Group justify="center" grow pb="xl" px="md">
-            <Button variant="default">Log in</Button>
-            <Button>Sign up</Button>
-          </Group>
-        </ScrollArea>
-      </Drawer>
+                    </div>
+                    <div
+                      className={`md:absolute bottom-0 pt-2 md:-bottom-3 md:p-5 md:left-1/2 md:translate-y-full transition-all duration-500 ease-out w-full md:w-[700px] md:-translate-x-1/2 rounded-xl border-none z-10 md:shadow md:bg-white ${isDropdownOpened ? 'grid sm:grid-cols-2' : 'hidden'} md:border`}
+                    >
+                      {link.links?.map((l, i) => (
+                        <Link
+                          href={l.link}
+                          key={i}
+                          className="flex  items-center rounded-xl px-3 py-1 md:py-3 gap-5 font-medium md:hover:bg-black/5 transition-all"
+                        >
+                          <div className="border p-2 rounded-xl">{l.icon}</div>
+                          {l.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </button>
+                );
+              }
+              if (link.label === 'Donate') {
+                return <DonateModal label={link.label} key={link.label} />;
+              } else
+                return (
+                  <Link
+                    key={index}
+                    href={link.link}
+                    className="px-[24px] py-[12px] text-lg font-semibold md:hover:bg-black/5 rounded-xl transition-all"
+                  >
+                    {link.label}
+                  </Link>
+                );
+            })}
+          </div>
+        </div>
+      </div>
     </header>
   );
 };

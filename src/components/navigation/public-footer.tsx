@@ -12,7 +12,7 @@ export const PublicFooter = () => {
     ? process.env.NEXT_PUBLIC_AWS_PATH + '/' + bannerLogo.banners[0]?.path
     : '';
   return (
-    <Container p={20} size={'xl'}>
+    <div className="container">
       <SimpleGrid cols={{ base: 1, md: 2, lg: 4 }} pt={40}>
         <div>
           <img src={bannerMain} alt="mainLogo" />
@@ -89,6 +89,6 @@ export const PublicFooter = () => {
           </p>
         </div>
       </div>
-    </Container>
+    </div>
   );
 };
