@@ -11,10 +11,10 @@ const Card = ({
   description: string;
 }) => {
   return (
-    <div className="flex-1 max-w-80 flex flex-col items-center justify-center text-center gap-3 bg-white border border-primary border-opacity-50 p-6 rounded-2xl">
-      <div className=" w-32 h-32 relative">{icon}</div>
+    <div className=" flex flex-col flex-1 md:max-w-80 h-full items-center justify-center text-center gap-3 bg-white border border-primary border-opacity-50 p-4 md:p-6 rounded-2xl shadow-primary/20 shadow-md">
+      <div className="w-[80px] h-[80px] md:w-32 md:h-32 relative">{icon}</div>
       <div className=" font-bold text-xl">{title}</div>
-      <div>{description}</div>
+      <div className="text-black/80">{description}</div>
     </div>
   );
 };
@@ -35,7 +35,7 @@ export default function UsertypeExplain() {
     },
     {
       title: 'Хамтрагч',
-      description: `Та мэдээ,төсөл,хөтөлбөрүүдээ энд байршуулснаар олон нийт,дэмжигчид,сайн дурын ажилтнуудад цаг алдалгүй хүргэж,хандив болон бусад олон төрлийн дэмжлэг аваарай.`,
+      description: `Та мэдээ, төсөл, хөтөлбөрүүдээ энд байршуулснаар олон нийт, дэмжигчид,сайн дурын ажилтнуудад цаг алдалгүй хүргэж,хандив болон бусад олон төрлийн дэмжлэг аваарай.`,
       icon: (
         <Image
           src="/images/partner/partner_logo.png"
@@ -59,10 +59,15 @@ export default function UsertypeExplain() {
     },
   ];
   return (
-    <div className="bg-primary/20 py-16">
-      <div className="container flex flex-row justify-center gap-16">
+    <div className="bg-primary/20 py-[44px] md:py-16">
+      <div className="md:container flex flex-row md:justify-evenly max-md:gap-4 max-md:snap-x max-md:snap-mandatory overflow-x-scroll max-md:px-[18px]">
         {cardData.map((card, index) => (
-          <Card {...card} key={index} />
+          <div
+            className=" max-md:min-w-[calc(100vw-25vw)] max-md:snap-always max-md:snap-center my-4"
+            key={index}
+          >
+            <Card {...card} />
+          </div>
         ))}
       </div>
     </div>

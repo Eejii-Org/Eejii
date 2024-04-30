@@ -31,7 +31,7 @@ export const Card = (props: CardPropsType) => {
   const { cardData } = props;
   return (
     <div
-      className={`flex-1 flex flex-row gap-6 ${contain ? 'bg-white rounded-[24px]' : ''}`}
+      className={`flex-1 w-full flex flex-row gap-6 ${contain ? 'bg-white rounded-[24px]' : ''}`}
     >
       {showHighlight && (
         <div className={`w-1 mt-24`} style={{ background: highlightColor }} />
@@ -103,8 +103,10 @@ export const Card = (props: CardPropsType) => {
             </>
           ) : (
             <>
-              <h3 className="font-bold text-xl">{cardData?.title}</h3>
-              <p className="text-md text-black/60">
+              <h3 className="font-bold text-xl pt-5 md:pt-0">
+                {cardData?.title}
+              </h3>
+              <p className="text-lg md:text-md text-black/60">
                 {cardData?.[cardType == 'media' ? 'body' : 'description']
                   ?.split(' ')
                   .slice(0, 30)
