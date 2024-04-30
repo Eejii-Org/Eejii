@@ -1,7 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
-import type { UserType } from '@/lib/db/enums';
+import { UserType } from '@/lib/db/enums';
 import { RequestStatus } from '@/lib/db/enums';
 import { ServerSettings } from '@/lib/server-settings';
 import { jsonArrayFrom, jsonObjectFrom } from 'kysely/helpers/postgres';
