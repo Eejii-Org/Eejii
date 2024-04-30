@@ -153,7 +153,7 @@ const MapChart = ({ countries }: { countries?: Country[] }) => {
     };
   }, []);
 
-  return <div id="chartdiv" style={{ width: '100%', height: '576px' }} />;
+  return <div id="chartdiv" className="w-full h-96 md:h-[576px]" />;
 };
 
 export default MapChart;

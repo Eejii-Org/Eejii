@@ -61,14 +61,14 @@ export const PublicFooter = () => {
         </h6>
         {mapLinks}
         {item.label == 'Шуурхай холбоос' && (
-          <div className="border-b-2 border-black/2 w-[130px] mx-auto md:hidden"></div>
+          <div className="border-b-2 border-black/2 w-[130px] mx-auto md:hidden pt-6"></div>
         )}
       </div>
     );
   });
 
   return (
-    <footer>
+    <footer className="bg-[#F2F2F2]">
       <div className="container pt-[24px] md:pt-[90px] pb-[65px]">
         <div className="grid text-black/70 md:grid-cols-2 lg:grid-cols-4 gap-[24px] md:gap-[84px] text-center md:text-left">
           <div className="mx-auto md:m-0">
@@ -100,7 +100,7 @@ export const PublicFooter = () => {
           </div>
 
           <div className="text-center">
-            <p className="text-md">
+            <p className="text-md text-black/50">
               Энэхүү сан нь ❤ “ЭЭЖИЙ ЕРТӨНЦ” НҮТББ-ын өмч бөгөөд бүх эрх ©
               хуулиар хамгаалагдсан болно
             </p>

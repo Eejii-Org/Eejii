@@ -45,8 +45,8 @@ export const PublicHeader = () => {
   const [isNavOpened, setIsNavOpened] = useState(false);
 
   return (
-    <header className="bg-white fixed w-full z-50">
-      <div className="container mx-auto flex flex-row justify-between py-[21px] items-center">
+    <header className="bg-white fixed w-full z-50 shadow-sm">
+      <div className="container mx-auto flex flex-row justify-between py-[12px] items-center">
         <Link href="/">
           <div className="relative w-[168px] h-[42px]">
             <Image
@@ -63,9 +63,9 @@ export const PublicHeader = () => {
         >
           {isNavOpened ? <ClosingIconX /> : <IconMenu2 />}
         </button>
-        <div className="absolute right-0 top-[80px] w-full md:w-auto md:static">
+        <div className="absolute max-md:shadow-md right-0 top-[65px] w-full md:w-auto md:static">
           <div
-            className={`bg-white flex-col gap-2 container rounded border z-10 ${isNavOpened ? 'flex' : 'hidden'} md:flex md:flex-row md:static md:border-none md:w-auto`}
+            className={`bg-white flex-col gap-2 container md:rounded border z-10 ${isNavOpened ? 'flex' : 'hidden'} md:flex md:flex-row md:static md:border-none md:w-auto`}
           >
             {links.map((link, index) => {
               if (link.label == 'Платформ') {
