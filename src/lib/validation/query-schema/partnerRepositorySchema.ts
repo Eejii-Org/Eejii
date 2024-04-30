@@ -1,4 +1,4 @@
-import { PlanTypes } from '@/lib/types';
+import { PartnerType } from '@/lib/db/enums';
 import { z } from 'zod';
 
 export const findAllQuerySchema = z.object({
@@ -6,5 +6,5 @@ export const findAllQuerySchema = z.object({
   limit: z.number().default(20),
   search: z.string().nullish(),
   status: z.string().nullish(),
-  plan: z.enum([PlanTypes.BASIC, PlanTypes.STANDART]).nullish(),
+  partnerType: z.enum([PartnerType.BASIC, PartnerType.PREMIUM]).nullish(),
 });

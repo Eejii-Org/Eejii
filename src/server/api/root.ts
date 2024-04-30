@@ -12,6 +12,7 @@ import { userRouter } from './routers/user-router';
 import { volunteerRouter } from './routers/volunteer-router';
 import { dataRouter } from './routers/data-router';
 import { permitRouter } from './routers/permit-router';
+import { paymentRouter } from './routers/payment-router';
 
 /**
  * This is the primary router for your server.
@@ -31,6 +32,7 @@ export const appRouter = createTRPCRouter({
   banner: bannerRouter,
   data: dataRouter,
   permit: permitRouter,
+  payment: paymentRouter,
 });
 
 // export type definition of API

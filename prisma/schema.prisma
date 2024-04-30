@@ -51,6 +51,11 @@ model User {
   contact          Json?
   eventPermit      Int     @default(1)
   projectPermit    Int     @default(1)
+  mediaPermit      Int     @default(1)
+
+  Subscription       Subscription? @relation(fields: [subscriptionId], references: [id])
+  subscriptionId     String?
+  subscriptionEndsAt DateTime?
 
   // Relations
   Donations             Donation[]
@@ -68,12 +73,13 @@ model User {
   ParticipatingEvents   EventParticipator[]
   CertificateTemplates  CertificateTemplate[]
 
-  PartnerPlan   PartnerPlan? @relation(fields: [partnerPlanId], references: [id])
-  partnerPlanId String?      @unique
-
   PartnerBanners PartnerBanner[]
-  PartnerPermits PartnerPermit[]
   Payments       Payment[]
+}
+
+enum PartnerType {
+  PREMIUM
+  BASIC
 }
 
 enum Role {
@@ -291,43 +297,59 @@ model Address {
   @@index([userId])
 }
 
+enum PaymentStatus {
+  AWAITING_PAYMENT
+  CANCELLED
+  PAID
+}
+
 model Donation {
-  id           String    @id @default(dbgenerated("gen_random_uuid()"))
-  amount       Int
-  User         User?     @relation(fields: [userId], references: [id])
-  userId       String?
-  isPublicName Boolean   @default(false)
-  Project      Project?  @relation(fields: [projectId], references: [id])
-  projectId    String?
-  Payments     Payment[]
-  createdAt    DateTime  @default(now())
+  id             String        @id @default(dbgenerated("gen_random_uuid()"))
+  amount         Int
+  User           User?         @relation(fields: [userId], references: [id])
+  userId         String?
+  isPublicAmount Boolean       @default(false)
+  Project        Project?      @relation(fields: [projectId], references: [id])
+  projectId      String?
+  Payments       Payment[]
+  createdAt      DateTime      @default(now())
+  status         PaymentStatus @default(AWAITING_PAYMENT)
 
   @@index([userId])
   @@index([projectId])
 }
 
 model Payment {
-  id        String    @id @default(dbgenerated("gen_random_uuid()"))
+  id        String        @id @default(dbgenerated("gen_random_uuid()"))
   amount    Int
   invoiceId String?
-  status    String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  status    PaymentStatus @default(AWAITING_PAYMENT)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime?     @updatedAt
   details   Json?
+
+  PaymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  paymentMethodId String?
 
   User   User?   @relation(fields: [userId], references: [id])
   userId String?
 
-  Donation         Donation?       @relation(fields: [donationId], references: [id])
-  donationId       String?
-  Plan             UserPlan?       @relation(fields: [planId], references: [id])
-  planId           String?
-  BannerPosition   BannerPosition? @relation(fields: [bannerPositionId], references: [id])
-  bannerPositionId String?
-  Permit           Permit?         @relation(fields: [permitId], references: [id])
-  permitId         String?
+  Donation   Donation? @relation(fields: [donationId], references: [id])
+  donationId String?
+  Permit     Permit?   @relation(fields: [permitId], references: [id])
+  permitId   String?
 
-  @@index([planId, bannerPositionId, permitId, donationId])
+  @@index([permitId, donationId, paymentMethodId])
+}
+
+model PaymentMethod {
+  id          String    @id @default(dbgenerated("gen_random_uuid()"))
+  code        String    @unique
+  name        String
+  description String
+  enabled     Boolean
+  position    Int
+  Payment     Payment[]
 }
 
 model Category {
@@ -462,50 +484,13 @@ model Banner {
 }
 
 model BannerPosition {
-  id        String    @id @default(dbgenerated("gen_random_uuid()"))
-  code      String    @unique
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  code      String   @unique
   label     String
   type      String?
   thumbnail String?
   Banners   Banner[]
-  Payments  Payment[]
   Permit    Permit[]
-}
-
-model UserPlan {
-  id            String  @id @default(dbgenerated("gen_random_uuid()"))
-  code          String
-  name          String?
-  description   String?
-  duration      Int
-  price         Int
-  originalPrice Int
-
-  PlanImages   PlanImage[]
-  PartnerPlans PartnerPlan[]
-  Payments     Payment[]
-}
-
-model PlanImage {
-  id      String   @id @default(dbgenerated("gen_random_uuid()"))
-  path    String?
-  type    String
-  Owner   UserPlan @relation(fields: [ownerId], references: [id])
-  ownerId String
-
-  @@index([ownerId])
-}
-
-model PartnerPlan {
-  id        String   @id @default(dbgenerated("gen_random_uuid()"))
-  startDate DateTime
-  endDate   DateTime
-  active    Boolean  @default(false)
-  Plan      UserPlan @relation(fields: [planId], references: [id])
-  planId    String
-  User      User?
-
-  @@index([planId])
 }
 
 model CertificateTemplate {
@@ -543,34 +528,26 @@ model Permit {
   code          String     @unique
   price         Int
   originalPrice Int
-  quantity      Int
+  quantity      Int // PLAN: months | Permit: quantity of permit
   type          PermitType
   enabled       Boolean    @default(true)
 
   BannerPosition   BannerPosition? @relation(fields: [bannerPositionId], references: [id])
   bannerPositionId String?
-  Payments         Payment[]
-  PartnerPermit    PartnerPermit[]
 
-  @@index([bannerPositionId])
+  Subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String?
+
+  Payments Payment[]
+
+  @@index([bannerPositionId, subscriptionId])
 }
 
 enum PermitType {
   EVENT
   PROJECT
   BANNER
-}
-
-model PartnerPermit {
-  id        String   @id @default(dbgenerated("gen_random_uuid()"))
-  Partner   User?    @relation(fields: [userId], references: [id])
-  userId    String?
-  Permit    Permit?  @relation(fields: [permitId], references: [id])
-  permitId  String?
-  enabled   Boolean  @default(true)
-  createdAt DateTime @default(now())
-
-  @@index([permitId, userId])
+  SUBSCRIPTION
 }
 
 model Country {
@@ -604,4 +581,17 @@ model UserEmailVerification {
   expiresAt  DateTime?
   verifiedAt DateTime?
   isVerified Boolean   @default(false)
+}
+
+model Subscription {
+  id          String      @id @default(dbgenerated("gen_random_uuid()"))
+  name        String
+  code        PartnerType
+  description String
+  maxProjects Int
+  maxEvents   Int
+  maxMedia    Int
+
+  User   User[]
+  Permit Permit[]
 }

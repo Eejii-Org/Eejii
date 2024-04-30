@@ -17,18 +17,10 @@ export const selectPartnerDetail = (db: Transaction<DB> | Kysely<DB>) => {
     .select(eb1 => [
       jsonObjectFrom(
         eb1
-          .selectFrom('PartnerPlan')
-          .selectAll('PartnerPlan')
-          .select(eb2 => [
-            jsonObjectFrom(
-              eb2
-                .selectFrom('UserPlan')
-                .selectAll('UserPlan')
-                .whereRef('UserPlan.id', '=', 'PartnerPlan.planId')
-            ).as('Plan'),
-          ])
-          .whereRef('PartnerPlan.id', '=', 'User.partnerPlanId')
-      ).as('PartnerPlan'),
+          .selectFrom('Subscription')
+          .selectAll('Subscription')
+          .whereRef('Subscription.id', '=', 'User.subscriptionId')
+      ).as('Subscription'),
     ]);
 };
 
@@ -48,17 +40,9 @@ export const selectPartnerList = (db: Transaction<DB> | Kysely<DB>) => {
     .select(eb1 => [
       jsonObjectFrom(
         eb1
-          .selectFrom('PartnerPlan')
-          .selectAll('PartnerPlan')
-          .select(eb2 => [
-            jsonObjectFrom(
-              eb2
-                .selectFrom('UserPlan')
-                .selectAll('UserPlan')
-                .whereRef('UserPlan.id', '=', 'PartnerPlan.planId')
-            ).as('Plan'),
-          ])
-          .whereRef('PartnerPlan.id', '=', 'User.partnerPlanId')
-      ).as('PartnerPlan'),
+          .selectFrom('Subscription')
+          .selectAll('Subscription')
+          .whereRef('Subscription.id', '=', 'User.subscriptionId')
+      ).as('Subscription'),
     ]);
 };

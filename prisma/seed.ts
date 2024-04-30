@@ -191,43 +191,10 @@ async function createMedia(count: number) {
 async function createPartners(count: number) {
   for (let i = 0; i < count; i++) {
     await db.transaction().execute(async trx => {
-      const basicPlan = await trx
-        .selectFrom('UserPlan')
-        .select('id')
-        .where('code', '=', 'basic')
-        .executeTakeFirstOrThrow();
-      const standartPlan = await trx
-        .selectFrom('UserPlan')
-        .select('id')
-        .where('code', '=', 'standart')
-        .executeTakeFirstOrThrow();
-
-      const basicPartnerPlan = await trx
-        .insertInto('PartnerPlan')
-        .values({
-          planId: basicPlan.id,
-          startDate: new Date(),
-          endDate: new Date(100),
-        })
-        .returning('id')
-        .executeTakeFirstOrThrow();
-      const standartPartnerPlan = await trx
-        .insertInto('PartnerPlan')
-        .values({
-          planId: standartPlan.id,
-          startDate: new Date(),
-          endDate: new Date(100),
-        })
-        .returning('id')
-        .executeTakeFirstOrThrow();
       const hashedPassword = await hash('sunshine');
       await trx
         .insertInto('User')
         .values({
-          partnerPlanId: faker.helpers.arrayElement([
-            basicPartnerPlan.id,
-            standartPartnerPlan.id,
-          ]),
           requestSend: true,
           requestStatus: 'REQUEST_APPROVED',
           bio: faker.lorem.paragraph(),
@@ -466,7 +433,7 @@ async function createDonations(count: number) {
       .insertInto('Donation')
       .values({
         amount: faker.number.int({ min: 1000, max: 9999999 }),
-        isPublicName: faker.datatype.boolean(30),
+        isPublicAmount: faker.datatype.boolean(30),
         projectId: faker.helpers.arrayElement(project.map(p => p.id)),
         userId: faker.helpers.arrayElement(user.map(u => u.id)),
       })
@@ -477,29 +444,6 @@ async function createDonations(count: number) {
 
 async function main() {
   await clearData();
-  await db
-    .insertInto('UserPlan')
-    .values([
-      {
-        description: 'Basic plan',
-        name: 'Basic',
-        code: 'basic',
-        duration: 100,
-        price: 0,
-        originalPrice: 0,
-      },
-      {
-        description: 'Standart plan',
-        name: 'Standart',
-        code: 'standart',
-        duration: 10,
-        price: 0,
-        originalPrice: 0,
-      },
-    ])
-    .returning('id')
-    .executeTakeFirstOrThrow();
-
   await createSkills(20);
   await createCategories(20);
   await createPartners(10);

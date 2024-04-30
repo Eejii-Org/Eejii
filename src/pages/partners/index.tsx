@@ -12,7 +12,6 @@ import {
 } from '@mantine/core';
 import { api } from '@/utils/api';
 import type { User } from '@/lib/types';
-import { PlanTypes } from '@/lib/types';
 import { PartnerCard } from '@/components/card/partner-card';
 import { FallbackImage } from '@/components/common/fallback-image';
 
@@ -26,14 +25,10 @@ export default function Index() {
     : '';
 
   const { data: basicPartners, isLoading: isBasicLoading } =
-    api.partner.findAll.useQuery({
-      plan: PlanTypes.BASIC,
-    });
+    api.partner.findAll.useQuery({ page: 1, partnerType: 'BASIC' });
   console.log(basicPartners);
   const { data: standartPartners, isLoading: isStandartLoading } =
-    api.partner.findAll.useQuery({
-      plan: PlanTypes.STANDART,
-    });
+    api.partner.findAll.useQuery({ page: 1, partnerType: 'PREMIUM' });
 
   return (
     <PublicLayout>

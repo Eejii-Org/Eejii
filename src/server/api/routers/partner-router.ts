@@ -10,6 +10,7 @@ import { createPresignedUrl } from '../helper/imageHelper';
 import { getPaginationInfo } from '../helper/paginationInfo';
 import { partnerRepository } from '../repository/partner-repository';
 import { createTRPCRouter, privateProcedure, publicProcedure } from '../trpc';
+import { PartnerType } from '@/lib/db/enums';
 
 export const partnerRouter = createTRPCRouter({
   findById: publicProcedure
@@ -64,19 +65,10 @@ export const partnerRouter = createTRPCRouter({
             message: 'User already exists.',
           });
         }
-        const plan = await trx
-          .selectFrom('UserPlan')
+        const subscription = await trx
+          .selectFrom('Subscription')
           .select('id')
-          .where('code', '=', 'free')
-          .executeTakeFirstOrThrow();
-        const partnerPlan = await trx
-          .insertInto('PartnerPlan')
-          .values({
-            planId: plan.id,
-            startDate: new Date(),
-            endDate: new Date(100),
-          })
-          .returning('id')
+          .where('code', '=', PartnerType.BASIC)
           .executeTakeFirstOrThrow();
 
         const hashedPassword = await hash(password);
@@ -90,7 +82,7 @@ export const partnerRouter = createTRPCRouter({
             introduction: input.introduction,
             email: input.email,
             type: 'USER_PARTNER',
-            partnerPlanId: partnerPlan.id,
+            subscriptionId: subscription.id,
             contact: {
               phone_primary: input.contact.phoneNumber1,
               phone_secondary: input.contact.phoneNumber2,

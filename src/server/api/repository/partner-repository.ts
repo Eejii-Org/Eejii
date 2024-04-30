@@ -39,15 +39,12 @@ export const partnerRepository = {
           ])
         );
       }
-      if (input.plan) {
+      if (input.partnerType) {
         query = query
-          .leftJoin('PartnerPlan', join =>
-            join.onRef('User.partnerPlanId', '=', 'PartnerPlan.id')
+          .leftJoin('Subscription', join =>
+            join.onRef('User.subscriptionId', '=', 'Subscription.id')
           )
-          .leftJoin('UserPlan', join =>
-            join.onRef('UserPlan.id', '=', 'PartnerPlan.planId')
-          )
-          .where('UserPlan.code', '=', input.plan);
+          .where('Subscription.code', '=', input.partnerType);
       }
 
       const partners = await query
@@ -62,11 +59,8 @@ export const partnerRepository = {
         .select(expressionBuilder => {
           return expressionBuilder.fn.countAll().as('count');
         })
-        .leftJoin('PartnerPlan', join =>
-          join.onRef('User.partnerPlanId', '=', 'PartnerPlan.id')
-        )
-        .leftJoin('UserPlan', join =>
-          join.onRef('UserPlan.id', '=', 'PartnerPlan.planId')
+        .leftJoin('Subscription', join =>
+          join.onRef('User.subscriptionId', '=', 'Subscription.id')
         )
         .where('User.type', '=', 'USER_PARTNER');
 
@@ -88,8 +82,12 @@ export const partnerRepository = {
           ])
         );
       }
-      if (input.plan) {
-        countQuery = countQuery.where('UserPlan.code', '=', input.plan);
+      if (input.partnerType) {
+        countQuery = countQuery.where(
+          'Subscription.code',
+          '=',
+          input.partnerType
+        );
       }
       const { count } = await countQuery.executeTakeFirstOrThrow();
 

@@ -1,3 +1,8 @@
+export const PartnerType = {
+    PREMIUM: "PREMIUM",
+    BASIC: "BASIC"
+} as const;
+export type PartnerType = (typeof PartnerType)[keyof typeof PartnerType];
 export const Role = {
     ROLE_USER: "ROLE_USER",
     ROLE_ADMIN: "ROLE_ADMIN",
@@ -34,9 +39,16 @@ export const ProjectStatus = {
     DONE: "DONE"
 } as const;
 export type ProjectStatus = (typeof ProjectStatus)[keyof typeof ProjectStatus];
+export const PaymentStatus = {
+    AWAITING_PAYMENT: "AWAITING_PAYMENT",
+    CANCELLED: "CANCELLED",
+    PAID: "PAID"
+} as const;
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
 export const PermitType = {
     EVENT: "EVENT",
     PROJECT: "PROJECT",
-    BANNER: "BANNER"
+    BANNER: "BANNER",
+    SUBSCRIPTION: "SUBSCRIPTION"
 } as const;
 export type PermitType = (typeof PermitType)[keyof typeof PermitType];
