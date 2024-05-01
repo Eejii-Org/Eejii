@@ -1,4 +1,7 @@
 export const ServerSettings = {
+  PAYMENT_METHOD: {
+    QPAY: 'qpay',
+  },
   NOTIFICATION: {
     USER_PARTNER: {
       APPROVED_TITLE: 'Your request to join has been approved',

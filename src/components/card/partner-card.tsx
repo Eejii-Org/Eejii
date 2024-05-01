@@ -1,8 +1,9 @@
-import { PlanTypes, type User } from '@/lib/types';
+import { type User } from '@/lib/types';
 import { Paper, Rating, Stack, Text } from '@mantine/core';
 import { IconShieldStar } from '@tabler/icons-react';
 import Link from 'next/link';
 import { FallbackImage } from '../common/fallback-image';
+import { PartnerType } from '@/lib/db/enums';
 
 export const PartnerCard = ({ partner }: { partner: User }) => {
   const image =
@@ -27,7 +28,7 @@ export const PartnerCard = ({ partner }: { partner: User }) => {
           <h1 className="text-md font-bold">
             {partner?.organizationName ?? partner?.email}
           </h1>
-          {partner?.PartnerPlan?.Plan?.code === PlanTypes.STANDART && (
+          {partner?.Subscription?.code === PartnerType.PREMIUM && (
             <IconShieldStar />
           )}
         </span>

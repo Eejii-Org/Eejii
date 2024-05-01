@@ -1,6 +1,6 @@
 import { adminProcedure, createTRPCRouter, privateProcedure } from '../trpc';
 import { permitSchema } from '@/lib/validation/mutation-schema/permit-validation-schema';
-import { PermitType } from '@/lib/db/enums';
+import type { PermitType } from '@/lib/db/enums';
 import { z } from 'zod';
 import type { ListResponse, Pagination } from '@/lib/types';
 import { getPaginationInfo } from '../helper/paginationInfo';
@@ -79,70 +79,38 @@ export const permitRouter = createTRPCRouter({
   createPermit: adminProcedure
     .input(permitSchema)
     .mutation(async ({ ctx, input }) => {
-      if (input.positionId) {
-        await ctx.db
-          .insertInto('Permit')
-          .values({
-            bannerPositionId: input.positionId as string,
-            code: input.code,
-            name: input.name,
-            description: input.description,
-            price: input.price * 100,
-            originalPrice: input.originalPrice * 100,
-            quantity: input.quantity,
-            type: input.type as PermitType,
-            enabled: true,
-          })
-          .executeTakeFirstOrThrow();
-      } else {
-        await ctx.db
-          .insertInto('Permit')
-          .values({
-            code: input.code,
-            name: input.name,
-            description: input.description,
-            price: input.price * 100,
-            originalPrice: input.originalPrice * 100,
-            quantity: input.quantity,
-            type: input.type as PermitType,
-            enabled: true,
-          })
-          .executeTakeFirstOrThrow();
-      }
+      await ctx.db
+        .insertInto('Permit')
+        .values({
+          bannerPositionId: (input.positionId as string) ?? null,
+          code: input.code,
+          name: input.name,
+          description: input.description,
+          price: input.price * 100,
+          originalPrice: input.originalPrice * 100,
+          quantity: input.quantity,
+          type: input.type as PermitType,
+          enabled: true,
+        })
+        .executeTakeFirstOrThrow();
     }),
   updatePermit: adminProcedure
     .input(permitSchema)
     .mutation(async ({ ctx, input }) => {
-      if (input.positionId) {
-        await ctx.db
-          .updateTable('Permit')
-          .where('id', '=', input.id as string)
-          .set({
-            bannerPositionId: input.positionId as string,
-            code: input.code,
-            name: input.name,
-            description: input.description,
-            price: input.price * 100,
-            originalPrice: input.originalPrice * 100,
-            quantity: input.quantity,
-            type: input.type as PermitType,
-          })
-          .executeTakeFirstOrThrow();
-      } else {
-        await ctx.db
-          .updateTable('Permit')
-          .where('id', '=', input.id as string)
-          .set({
-            code: input.code,
-            name: input.name,
-            description: input.description,
-            price: input.price * 100,
-            originalPrice: input.originalPrice * 100,
-            quantity: input.quantity,
-            type: input.type as PermitType,
-          })
-          .executeTakeFirstOrThrow();
-      }
+      await ctx.db
+        .updateTable('Permit')
+        .where('id', '=', input.id as string)
+        .set({
+          bannerPositionId: (input.positionId as string) ?? null,
+          code: input.code,
+          name: input.name,
+          description: input.description,
+          price: input.price * 100,
+          originalPrice: input.originalPrice * 100,
+          quantity: input.quantity,
+          type: input.type as PermitType,
+        })
+        .executeTakeFirstOrThrow();
     }),
   disable: adminProcedure
     .input(z.object({ id: z.string() }))
@@ -161,60 +129,5 @@ export const permitRouter = createTRPCRouter({
         .where('id', '=', input.id)
         .set({ enabled: true })
         .executeTakeFirstOrThrow();
-    }),
-  buyPermit: privateProcedure
-    .input(z.object({ permitId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const permit = await ctx.db
-        .selectFrom('Permit')
-        .selectAll()
-        .where('id', '=', input.permitId)
-        .executeTakeFirstOrThrow();
-      ctx.db.transaction().execute(async trx => {
-        trx
-          .insertInto('PartnerPermit')
-          .values({
-            userId: ctx.userId,
-            permitId: permit.id,
-          })
-          .executeTakeFirstOrThrow();
-        if (permit.type === PermitType.EVENT) {
-          await trx
-            .updateTable('User')
-            .where('id', '=', ctx.userId)
-            .set(eb => ({
-              eventPermit: eb('eventPermit', '+', permit.quantity),
-            }))
-            .executeTakeFirstOrThrow();
-        } else if (permit.type === PermitType.PROJECT) {
-          await trx
-            .updateTable('User')
-            .where('id', '=', ctx.userId)
-            .set(eb => ({
-              projectPermit: eb('projectPermit', '+', permit.quantity),
-            }))
-            .executeTakeFirstOrThrow();
-        } else if (permit.type === PermitType.BANNER) {
-          const banner = await trx
-            .insertInto('Banner')
-            .values({
-              bannerPositionId: permit.bannerPositionId,
-            })
-            .returning('id')
-            .executeTakeFirstOrThrow();
-          const endDate = new Date();
-          endDate.setDate(endDate.getDate() + permit.quantity);
-          await trx
-            .insertInto('PartnerBanner')
-            .values({
-              bannerId: banner.id,
-              userId: ctx.userId,
-              active: true,
-              startDate: new Date(),
-              endDate: endDate,
-            })
-            .executeTakeFirstOrThrow();
-        }
-      });
     }),
 });

@@ -3,7 +3,6 @@ import { BasicPartnerDetail } from '@/components/partner/public/detail/basic-det
 import { StandartPartnerDetail } from '@/components/partner/public/detail/standart-detail';
 import { getServerAuthSession } from '@/lib/auth';
 import type { User } from '@/lib/types';
-import { PlanTypes } from '@/lib/types';
 import { appRouter } from '@/server/api/root';
 import { db } from '@/server/db';
 import { api } from '@/utils/api';
@@ -19,7 +18,7 @@ export default function PartnerDetail(
   const { data: partner, isLoading } = api.partner.findById.useQuery({
     id: id as unknown as string,
   });
-  const isStandart = partner?.PartnerPlan?.Plan?.code === PlanTypes.STANDART;
+  const isStandart = true;
   return (
     <PublicLayout>
       {!isLoading && partner ? (

@@ -24,11 +24,10 @@ import type {
   UserImage,
   EventCollaborator as EventCollaboratorDB,
   Skill,
-  PartnerPlan as PartnerPlanDB,
-  UserPlan,
   EventRole,
   CertificateTemplate,
   Certificate as CertificateDB,
+  Subscription,
 } from './db/types';
 
 export type Role = (typeof RoleConst)[keyof typeof RoleConst];
@@ -192,16 +191,14 @@ export type MyDonation = DonationDB & {
 
 export type User = UserDB & {
   Images: UserImage[];
-  UserSkills: {
+  UserSkills?: {
     Skill: Skill;
     id: string;
     skillId: string;
     userId: string;
   }[];
-  PartnerPlan: PartnerPlanDB & {
-    Plan: UserPlan;
-  };
   Addresses: Address[];
+  Subscription?: Subscription;
 };
 
 export type Media = MediaDB & {
@@ -229,11 +226,6 @@ export type ProjectCategory = CategoryProject & {
 export type Banner = BannerDB & {
   Position: BannerPosition;
 };
-
-export const PlanTypes = {
-  STANDART: 'standart',
-  BASIC: 'basic',
-} as const;
 
 export const RequestType = {
   INVITATION: 'INVITATION',
