@@ -32,60 +32,64 @@ export const paymentRouter = createTRPCRouter({
   checkPayment: privateProcedure
     .input(z.object({ paymentId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const payment = await ctx.db
-        .selectFrom('Payment')
-        .selectAll()
-        .select(eb => [
-          jsonObjectFrom(
-            eb
-              .selectFrom('PaymentMethod')
-              .selectAll('PaymentMethod')
-              .whereRef('PaymentMethod.id', '=', 'Payment.paymentMethodId')
-          ).as('PaymentMethod'),
-        ])
-        .where('Payment.id', '=', input.paymentId)
-        .executeTakeFirstOrThrow();
+      const response = await ctx.db.transaction().execute(async trx => {
+        const payment = await trx
+          .selectFrom('Payment')
+          .selectAll()
+          .select(eb => [
+            jsonObjectFrom(
+              eb
+                .selectFrom('PaymentMethod')
+                .selectAll('PaymentMethod')
+                .whereRef('PaymentMethod.id', '=', 'Payment.paymentMethodId')
+            ).as('PaymentMethod'),
+          ])
+          .where('Payment.id', '=', input.paymentId)
+          .executeTakeFirstOrThrow();
 
-      let response;
-      switch (payment.PaymentMethod?.code) {
-        case ServerSettings.PAYMENT_METHOD.QPAY:
-          const invoiceRes = await verify({
-            invoiceId: payment.invoiceId as string,
-          });
+        let res;
+        switch (payment.PaymentMethod?.code) {
+          case ServerSettings.PAYMENT_METHOD.QPAY:
+            const invoiceRes = await verify({
+              invoiceId: payment.invoiceId as string,
+            });
 
-          if (invoiceRes.code === 'success') {
-            const data = await ctx.db
-              .updateTable('Payment')
-              .where('id', '=', input.paymentId)
-              .set({
-                status: PaymentStatus.PAID,
-              })
-              .returningAll()
-              .executeTakeFirstOrThrow();
-            response = { code: PaymentStatus.PAID, payment: data };
-          } else {
-            await ctx.db
-              .updateTable('Payment')
-              .where('id', '=', input.paymentId)
-              .set({
-                status: PaymentStatus.AWAITING_PAYMENT,
-              })
-              .executeTakeFirstOrThrow();
-            response = { code: PaymentStatus.AWAITING_PAYMENT };
-          }
-          break;
-        default:
-          throw new TRPCError({
-            message: 'Payment method not valid',
-            code: 'BAD_REQUEST',
-          });
-      }
-      if (response.code === PaymentStatus.PAID) {
-        handlePaymentSuccess(
-          response.payment?.id as string,
-          response.payment?.userId as string
-        );
-      }
+            if (invoiceRes.code === 'success') {
+              const data = await trx
+                .updateTable('Payment')
+                .where('id', '=', input.paymentId)
+                .set({
+                  status: PaymentStatus.PAID,
+                })
+                .returningAll()
+                .executeTakeFirstOrThrow();
+              res = { code: PaymentStatus.PAID, payment: data };
+            } else {
+              await trx
+                .updateTable('Payment')
+                .where('id', '=', input.paymentId)
+                .set({
+                  status: PaymentStatus.AWAITING_PAYMENT,
+                })
+                .executeTakeFirstOrThrow();
+              res = { code: PaymentStatus.AWAITING_PAYMENT };
+            }
+            break;
+          default:
+            throw new TRPCError({
+              message: 'Payment method not valid',
+              code: 'BAD_REQUEST',
+            });
+        }
+        if (res.code === PaymentStatus.PAID) {
+          handlePaymentSuccess(
+            trx,
+            res.payment?.id as string,
+            res.payment?.userId as string
+          );
+        }
+      });
+
       return response;
     }),
   buyPermit: privateProcedure

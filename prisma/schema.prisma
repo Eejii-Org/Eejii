@@ -75,6 +75,7 @@ model User {
 
   PartnerBanners PartnerBanner[]
   Payments       Payment[]
+  Invoice        Invoice[]
 }
 
 enum PartnerType {
@@ -314,6 +315,7 @@ model Donation {
   Payments       Payment[]
   createdAt      DateTime      @default(now())
   status         PaymentStatus @default(AWAITING_PAYMENT)
+  InvoiceItem    InvoiceItem[]
 
   @@index([userId])
   @@index([projectId])
@@ -594,4 +596,36 @@ model Subscription {
 
   User   User[]
   Permit Permit[]
+}
+
+enum InvoiceStatus {
+  NEW
+  PAID
+}
+
+model Invoice {
+  id            String        @id @default(dbgenerated("gen_random_uuid()"))
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime?     @updatedAt
+  number        String        @unique
+  User          User          @relation(fields: [userId], references: [id])
+  userId        String
+  total         BigInt        @default(0)
+  itemsTotal    BigInt        @default(0)
+  fee           BigInt        @default(0)
+  feePercentage Int           @default(3)
+  status        InvoiceStatus @default(NEW)
+  paidAt        DateTime?
+  InvoiceItem   InvoiceItem[]
+}
+
+model InvoiceItem {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  Invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  invoiceId String
+  createdAt DateTime @default(now())
+  amount    BigInt
+
+  Donation   Donation? @relation(fields: [donationId], references: [id])
+  donationId String?
 }
