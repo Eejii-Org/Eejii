@@ -18,19 +18,69 @@ import {
   publicProcedure,
 } from '../trpc';
 import slugify from 'slugify';
-import { eventRepository } from '../repository/event-repository';
 import {
   findAllQuerySchema,
   getMyEventsQuerySchema,
 } from '@/lib/validation/query-schema/eventRepositorySchema';
 import handleSendEmail from '@/lib/mailer/sendEmailHelper';
 import emailTemplate from '@/components/mail/emailTemplate';
+import { selectEventDetail, selectEventList } from '../helper/eventSelector';
+import { jsonArrayFrom } from 'kysely/helpers/postgres';
 
 export const eventRouter = createTRPCRouter({
   findAll: publicProcedure
     .input(findAllQuerySchema)
     .query(async ({ input, ctx }) => {
-      const result = await eventRepository.findAll(ctx.db, input);
+      const result = await ctx.db.transaction().execute(async trx => {
+        const queryResult = await selectEventList(trx)
+          .where('Event.type', '=', input.type as EventType)
+          .$if(input.title !== undefined, qb =>
+            qb.where('title', 'like', '%' + input.title + '%')
+          )
+          .$if(input.enabled === true, qb =>
+            qb.where('enabled', '=', input.enabled as boolean)
+          )
+          .$if(input.featured === true, qb =>
+            qb.where('featured', '=', input.featured)
+          )
+          .$if(input.status !== undefined, qb =>
+            qb.where('status', '=', input.status as ProjectStatus)
+          )
+          .$if(input.partnerId !== undefined, qb =>
+            qb.where('ownerId', '=', input.partnerId as string)
+          )
+          .limit(input.limit)
+          .offset(input.limit * (input.page - 1))
+          .orderBy('Event.createdAt', input.sort)
+          .execute();
+
+        const { count } = await trx
+          .selectFrom('Event')
+          .select(expressionBuilder => {
+            return expressionBuilder.fn.countAll().as('count');
+          })
+          .where('Event.type', '=', input.type as EventType)
+          .$if(input.title !== undefined, qb =>
+            qb.where('title', 'like', '%' + input.title + '%')
+          )
+          .$if(input.enabled === true, qb =>
+            qb.where('enabled', '=', input.enabled as boolean)
+          )
+          .$if(input.featured === true, qb =>
+            qb.where('featured', '=', input.featured)
+          )
+          .$if(input.status !== undefined, qb =>
+            qb.where('status', '=', input.status as ProjectStatus)
+          )
+          .$if(input.partnerId !== undefined, qb =>
+            qb.where('ownerId', '=', input.partnerId as string)
+          )
+          .executeTakeFirstOrThrow();
+        return {
+          data: queryResult,
+          count,
+        };
+      });
       const totalCount = result.count as number;
       const paginationInfo: Pagination = getPaginationInfo({
         totalCount: totalCount,
@@ -51,24 +101,75 @@ export const eventRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const res = await eventRepository.findRelated(ctx.db, input);
+      const excludeEvent = await ctx.db
+        .selectFrom('Event')
+        .select(['Event.id', 'Event.ownerId'])
+        .select(eb => [
+          jsonArrayFrom(
+            eb
+              .selectFrom('Category')
+              .selectAll()
+              .leftJoin('CategoryEvent', join =>
+                join.onRef('CategoryEvent.eventId', '=', 'Event.id')
+              )
+              .whereRef('CategoryEvent.categoryId', '=', 'Category.id')
+          ).as('Categories'),
+        ])
+        .where('id', '=', input.excludeId)
+        .executeTakeFirst();
+      let query = selectEventList(ctx.db)
+        .leftJoin('CategoryEvent', join =>
+          join.onRef('CategoryEvent.eventId', '=', 'Event.id')
+        )
+        .leftJoin('Category', join =>
+          join.onRef('CategoryEvent.categoryId', '=', 'Category.id')
+        )
+        .where('Event.id', '!=', excludeEvent?.id as string);
+
+      if (excludeEvent && excludeEvent?.Categories?.length > 0) {
+        query = query.where(eb =>
+          eb.or(
+            excludeEvent?.Categories?.map(c =>
+              eb('CategoryEvent.id', '=', c.id)
+            )
+          )
+        );
+        query = query.where(eb =>
+          eb.or([eb('Event.ownerId', '=', excludeEvent.ownerId)])
+        );
+      }
+      if (input.limit) {
+        query = query.limit(input.limit);
+      }
+
+      const res = await query
+        .orderBy('Event.createdAt desc')
+        .groupBy('Event.id')
+        .execute();
       return res;
     }),
   findBySlug: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ ctx, input }) => {
-      const event = await eventRepository.findBySlug(ctx.db, input.slug);
-      return event as unknown as Event;
+      const query = selectEventDetail(ctx.db);
+      return query
+        .where('Event.slug', '=', input.slug)
+        .executeTakeFirstOrThrow();
     }),
   getMyEvents: privateProcedure
     .input(getMyEventsQuerySchema)
     .query(async ({ ctx, input }) => {
-      const events = await eventRepository.getMyEvents(
-        ctx.db,
-        input,
-        ctx.userId
-      );
-      return events as unknown as Event[];
+      let query = selectEventList(ctx.db)
+        .where('type', '=', input.type as EventType)
+        .where('ownerId', '=', ctx.userId);
+      if (input.name) {
+        query = query.where('Event.title', 'like', '%' + input.name + '%');
+      }
+      if (input.status) {
+        query = query.where('Event.status', '=', input.status as ProjectStatus);
+      }
+
+      return query.execute();
     }),
   getMyCollaborating: privateProcedure
     .input(
@@ -89,12 +190,21 @@ export const eventRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const events = await eventRepository.getMyCollaborating(
-        ctx.db,
-        ctx.userId,
-        input
-      );
-      return events;
+      const query = selectEventList(ctx.db);
+      return query
+        .leftJoin('EventCollaborator', join =>
+          join.onRef('EventCollaborator.eventId', '=', 'Event.id')
+        )
+        .leftJoin('User', join =>
+          join.onRef('User.id', '=', 'EventCollaborator.userId')
+        )
+        .where('User.id', '=', ctx.userId)
+        .where('EventCollaborator.status', '=', input.status as RequestStatus)
+        .where('Event.status', '=', input.projectStatus as ProjectStatus)
+        .orderBy('EventCollaborator.createdAt asc')
+        .offset(input.limit * (input.page - 1))
+        .limit(input.limit)
+        .execute();
     }),
   getMyParticipating: privateProcedure
     .input(
@@ -115,13 +225,25 @@ export const eventRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const events = await eventRepository.getMyParticipating(
-        ctx.db,
-        ctx.userId,
-        input
-      );
-      console.log(events);
-      return events;
+      const query = selectEventList(ctx.db);
+      return query
+        .leftJoin('EventParticipator', join =>
+          join.onRef('EventParticipator.eventId', '=', 'Event.id')
+        )
+        .leftJoin('User', join =>
+          join.onRef('User.id', '=', 'EventParticipator.userId')
+        )
+        .where(eb =>
+          eb.and({
+            'User.id': ctx.userId,
+            'EventParticipator.status': input.status as RequestStatus,
+            'Event.status': input.projectStatus as ProjectStatus,
+          })
+        )
+        .orderBy('EventParticipator.createdAt asc')
+        .offset(input.limit * (input.page - 1))
+        .limit(input.limit)
+        .execute();
     }),
   getNotRelated: privateProcedure.query(async ({ ctx }) => {
     const query = await sql`

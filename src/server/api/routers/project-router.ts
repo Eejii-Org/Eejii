@@ -1,38 +1,83 @@
+import { ProjectStatus, type ProjectType } from '@/lib/db/enums';
+import type { ListResponse, Pagination, Project, User } from '@/lib/types';
+import { projectSchema } from '@/lib/validation/project-schema';
+import {
+  findAllQuerySchema,
+  getMyProjectsQuerySchema,
+} from '@/lib/validation/query-schema/projectRepositorySchema';
 import { TRPCError } from '@trpc/server';
 import { sql } from 'kysely';
 import { jsonArrayFrom, jsonObjectFrom } from 'kysely/helpers/postgres';
+import slugify from 'slugify';
 import { z } from 'zod';
-
-import type { Project, User } from '@/lib/types';
-import { projectSchema } from '@/lib/validation/project-schema';
-
-import type { ListResponse, Pagination } from '@/lib/types';
 import { createPresignedUrl } from '../helper/imageHelper';
 import { sendNotification } from '../helper/notification';
 import { getPaginationInfo } from '../helper/paginationInfo';
+import {
+  selectProjectDetail,
+  selectProjectList,
+} from '../helper/projectSelector';
 import {
   adminProcedure,
   createTRPCRouter,
   privateProcedure,
   publicProcedure,
 } from '../trpc';
-import slugify from 'slugify';
-import { projectRepository } from '../repository/project-repository';
-import {
-  findAllQuerySchema,
-  getMyProjectsQuerySchema,
-} from '@/lib/validation/query-schema/projectRepositorySchema';
-import {
-  selectProjectDetail,
-  selectProjectList,
-} from '../helper/projectSelector';
-import { ProjectStatus, type ProjectType } from '@/lib/db/enums';
 
 export const projectRouter = createTRPCRouter({
   findAll: publicProcedure
     .input(findAllQuerySchema)
     .query(async ({ ctx, input }) => {
-      const result = await projectRepository.findAll(ctx.db, input);
+      const result = await ctx.db.transaction().execute(async trx => {
+        const queryResult = await selectProjectList(trx)
+          .where('Project.type', '=', input.type)
+          .$if(input.title !== undefined, qb =>
+            qb.where('title', 'like', '%' + input.title + '%')
+          )
+          .$if(input.enabled === true, qb =>
+            qb.where('enabled', '=', input.enabled)
+          )
+          .$if(input.featured === true, qb =>
+            qb.where('featured', '=', input.featured)
+          )
+          .$if(input.status !== undefined, qb =>
+            qb.where('status', '=', input.status as ProjectStatus)
+          )
+          .$if(input.partnerId !== undefined, qb =>
+            qb.where('ownerId', '=', input.partnerId as string)
+          )
+          .limit(input.limit)
+          .offset(input.limit * (input.page - 1))
+          .orderBy('Project.createdAt', input.sort)
+          .execute();
+
+        const { count } = await trx
+          .selectFrom('Project')
+          .select(expressionBuilder => {
+            return expressionBuilder.fn.countAll().as('count');
+          })
+          .where('Project.type', '=', input.type as ProjectType)
+          .$if(input.title !== undefined, qb =>
+            qb.where('title', 'like', '%' + input.title + '%')
+          )
+          .$if(input.enabled === true, qb =>
+            qb.where('enabled', '=', input.enabled)
+          )
+          .$if(input.featured === true, qb =>
+            qb.where('featured', '=', input.featured)
+          )
+          .$if(input.status !== undefined, qb =>
+            qb.where('status', '=', input.status as ProjectStatus)
+          )
+          .$if(input.partnerId !== undefined, qb =>
+            qb.where('ownerId', '=', input.partnerId as string)
+          )
+          .executeTakeFirstOrThrow();
+        return {
+          data: queryResult,
+          count,
+        };
+      });
 
       const paginationInfo: Pagination = getPaginationInfo({
         totalCount: result.count as number,
@@ -48,11 +93,20 @@ export const projectRouter = createTRPCRouter({
   getMyProjects: privateProcedure
     .input(getMyProjectsQuerySchema)
     .query(async ({ ctx, input }) => {
-      const projects = await projectRepository.getMyProjects(
-        ctx.db,
-        input,
-        ctx.userId
-      );
+      const projects = await selectProjectList(ctx.db)
+        .where(eb =>
+          eb.and({
+            ownerId: ctx.userId,
+            type: input.type,
+          })
+        )
+        .$if(input.name !== undefined, qb =>
+          qb.where('Project.title', 'like', '%' + input.name + '%')
+        )
+        .$if(input.status !== undefined, qb =>
+          qb.where('Project.status', '=', input.status as ProjectStatus)
+        )
+        .execute();
       return projects;
     }),
   findBySlug: publicProcedure
@@ -283,8 +337,49 @@ export const projectRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const res = await projectRepository.findRelated(ctx.db, input);
-      return res;
+      const excludeProject = await ctx.db
+        .selectFrom('Project')
+        .select(['Project.id', 'Project.ownerId'])
+        .select(eb => [
+          jsonArrayFrom(
+            eb
+              .selectFrom('CategoryProject')
+              .select(['CategoryProject.id'])
+              .whereRef('CategoryProject.projectId', '=', 'Project.id')
+          ).as('Categories'),
+        ])
+        .where('id', '=', input.excludeId)
+        .executeTakeFirst();
+      let query = selectProjectList(ctx.db)
+        .leftJoin('CategoryProject', join =>
+          join.onRef('CategoryProject.projectId', '=', 'Project.id')
+        )
+        .leftJoin('Category', join =>
+          join.onRef('CategoryProject.categoryId', '=', 'Category.id')
+        )
+        .where('Project.id', '!=', excludeProject?.id as string);
+
+      if (excludeProject && excludeProject?.Categories?.length > 0) {
+        query = query.where(eb =>
+          eb.or(
+            excludeProject?.Categories?.map(c =>
+              eb('CategoryProject.id', '=', c.id)
+            )
+          )
+        );
+        query = query.where(eb =>
+          eb.or([eb('Project.ownerId', '=', excludeProject.ownerId)])
+        );
+      }
+      if (input.limit) {
+        query = query.limit(input.limit);
+      }
+
+      const projects = await query
+        .orderBy('Project.createdAt desc')
+        .groupBy('Project.id')
+        .execute();
+      return projects;
     }),
   getProjectDonations: publicProcedure
     .input(
