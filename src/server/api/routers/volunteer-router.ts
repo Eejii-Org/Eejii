@@ -11,8 +11,10 @@ import { Role, RequestStatus } from '@/lib/db/enums';
 import { createTRPCRouter, privateProcedure, publicProcedure } from '../trpc';
 import { updateInfoSchema } from '@/lib/validation/mutation-schema/volunteer/updateInfo-schema';
 import { findAllQuerySchema } from '@/lib/validation/query-schema/volunteerRepositorySchema';
-import { selectVolunteerDetail } from '../helper/volunteerSelector';
-import { volunteerRepository } from '../repository/volunteer-repository';
+import {
+  selectVolunteerDetail,
+  selectVolunteerList,
+} from '../helper/volunteerSelector';
 import { jsonObjectFrom } from 'kysely/helpers/postgres';
 
 export const volunteerRouter = createTRPCRouter({
@@ -156,7 +158,54 @@ export const volunteerRouter = createTRPCRouter({
   findAll: publicProcedure
     .input(findAllQuerySchema)
     .query(async ({ ctx, input }) => {
-      const result = await volunteerRepository.findAll(ctx.db, input);
+      const result = await ctx.db.transaction().execute(async trx => {
+        const volunteers = await selectVolunteerList(trx)
+          .where('User.type', '=', 'USER_VOLUNTEER')
+          .$if(input.status !== undefined, qb =>
+            qb.where('User.requestStatus', '=', input.status as RequestStatus)
+          )
+          .$if(input.search !== undefined, qb =>
+            qb.where(eb =>
+              eb.or([
+                eb('User.email', 'like', '%' + input.search + '%'),
+                eb('User.phoneNumber', 'like', '%' + input.search + '%'),
+                eb('User.organizationName', 'like', '%' + input.search + '%'),
+                eb('User.firstName', 'like', '%' + input.search + '%'),
+                eb('User.lastName', 'like', '%' + input.search + '%'),
+              ])
+            )
+          )
+          .limit(input.limit)
+          .offset(input.limit * (input.page - 1))
+          .orderBy('User.createdAt desc')
+          .execute();
+
+        const { count } = await trx
+          .selectFrom('User')
+          .select(expressionBuilder => {
+            return expressionBuilder.fn.countAll().as('count');
+          })
+          .where('User.type', '=', 'USER_VOLUNTEER')
+          .$if(input.status !== undefined, qb =>
+            qb.where('User.requestStatus', '=', input.status as RequestStatus)
+          )
+          .$if(input.search !== undefined, qb =>
+            qb.where(eb =>
+              eb.or([
+                eb('User.email', 'like', '%' + input.search + '%'),
+                eb('User.phoneNumber', 'like', '%' + input.search + '%'),
+                eb('User.organizationName', 'like', '%' + input.search + '%'),
+                eb('User.firstName', 'like', '%' + input.search + '%'),
+                eb('User.lastName', 'like', '%' + input.search + '%'),
+              ])
+            )
+          )
+          .executeTakeFirstOrThrow();
+        return {
+          data: volunteers,
+          count,
+        };
+      });
       const totalCount = result.count as number;
       const paginationInfo: Pagination = getPaginationInfo({
         totalCount: totalCount,

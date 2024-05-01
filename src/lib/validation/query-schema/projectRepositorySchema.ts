@@ -7,8 +7,8 @@ export const findAllQuerySchema = z.object({
   partnerId: z.string().nullish(),
   limit: z.number().default(20),
   title: z.string().nullish(),
-  enabled: z.boolean().nullish(),
-  featured: z.boolean().nullish(),
+  enabled: z.boolean().nullish().default(false),
+  featured: z.boolean().nullish().default(false),
   status: z
     .enum([
       ProjectStatus.APPROVED,

@@ -1,5 +1,6 @@
+import { PartnerType } from '@/lib/db/enums';
 import type { User } from '@/lib/db/types';
-import { type ListResponse, type Pagination } from '@/lib/types';
+import type { RequestStatus, ListResponse, Pagination } from '@/lib/types';
 import { bioSchema } from '@/lib/validation/mutation-schema/partner/bio-schema';
 import { partnerSchema } from '@/lib/validation/partner-validation-schema';
 import { findAllQuerySchema } from '@/lib/validation/query-schema/partnerRepositorySchema';
@@ -8,21 +9,92 @@ import { hash } from 'argon2';
 import { z } from 'zod';
 import { createPresignedUrl } from '../helper/imageHelper';
 import { getPaginationInfo } from '../helper/paginationInfo';
-import { partnerRepository } from '../repository/partner-repository';
+import {
+  selectPartnerDetail,
+  selectPartnerList,
+} from '../helper/partnerSelector';
 import { createTRPCRouter, privateProcedure, publicProcedure } from '../trpc';
-import { PartnerType } from '@/lib/db/enums';
 
 export const partnerRouter = createTRPCRouter({
   findById: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      const partner = await partnerRepository.findById(ctx.db, input);
-      return partner;
+      const query = selectPartnerDetail(ctx.db)
+        .where('id', '=', input.id)
+        .executeTakeFirstOrThrow();
+      return query;
     }),
   findAll: publicProcedure
     .input(findAllQuerySchema)
     .query(async ({ ctx, input }) => {
-      const result = await partnerRepository.findAll(ctx.db, input);
+      const result = await ctx.db.transaction().execute(async trx => {
+        const partners = await selectPartnerList(trx)
+          .where('User.type', '=', 'USER_PARTNER')
+          .$if(input.status !== undefined, qb =>
+            qb.where('User.requestStatus', '=', input.status as RequestStatus)
+          )
+          .$if(input.search !== undefined, qb =>
+            qb.where(eb =>
+              eb.or([
+                eb('User.email', 'like', '%' + input.search + '%'),
+                eb('User.phoneNumber', 'like', '%' + input.search + '%'),
+                eb('User.organizationName', 'like', '%' + input.search + '%'),
+                eb('User.firstName', 'like', '%' + input.search + '%'),
+                eb('User.lastName', 'like', '%' + input.search + '%'),
+              ])
+            )
+          )
+          .$if(input.partnerType !== undefined, qb =>
+            qb
+              .leftJoin('Subscription', join =>
+                join.onRef('User.subscriptionId', '=', 'Subscription.id')
+              )
+              .where('Subscription.code', '=', input.partnerType as PartnerType)
+          )
+          .limit(input.limit)
+          .offset(input.limit * (input.page - 1))
+          .groupBy('User.id')
+          .orderBy('User.createdAt desc')
+          .execute();
+
+        const { count } = await trx
+          .selectFrom('User')
+          .select(expressionBuilder => {
+            return expressionBuilder.fn.countAll().as('count');
+          })
+          .leftJoin('Subscription', join =>
+            join.onRef('User.subscriptionId', '=', 'Subscription.id')
+          )
+          .where('User.type', '=', 'USER_PARTNER')
+
+          .$if(input.status !== undefined, qb =>
+            qb.where('User.requestStatus', '=', input.status as RequestStatus)
+          )
+          .$if(input.search !== undefined, qb =>
+            qb.where(eb =>
+              eb.or([
+                eb('User.email', 'like', '%' + input.search + '%'),
+                eb('User.phoneNumber', 'like', '%' + input.search + '%'),
+                eb('User.organizationName', 'like', '%' + input.search + '%'),
+                eb('User.firstName', 'like', '%' + input.search + '%'),
+                eb('User.lastName', 'like', '%' + input.search + '%'),
+              ])
+            )
+          )
+          .$if(input.partnerType !== undefined, qb =>
+            qb
+              .leftJoin('Subscription', join =>
+                join.onRef('User.subscriptionId', '=', 'Subscription.id')
+              )
+              .where('Subscription.code', '=', input.partnerType as PartnerType)
+          )
+          .executeTakeFirstOrThrow();
+
+        return {
+          data: partners,
+          count,
+        };
+      });
 
       const paginationInfo: Pagination = getPaginationInfo({
         totalCount: result.count as number,
