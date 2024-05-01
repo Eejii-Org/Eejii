@@ -1,15 +1,20 @@
-import { PaymentStatus, PermitType } from '@/lib/db/enums';
-import { db } from '@/server/db';
+import { InvoiceStatus, PaymentStatus, PermitType } from '@/lib/db/enums';
+import type { DB } from '@/lib/db/types';
 import { TRPCError } from '@trpc/server';
+import type { Kysely, Transaction } from 'kysely';
 
-async function handlePermit(permitId: string, userId: string) {
-  const permit = await db
+async function handlePermit(
+  trx: Transaction<DB> | Kysely<DB>,
+  permitId: string,
+  userId: string
+) {
+  const permit = await trx
     .selectFrom('Permit')
     .selectAll()
     .where('id', '=', permitId)
     .executeTakeFirstOrThrow();
   if (permit.type === PermitType.EVENT) {
-    await db
+    await trx
       .updateTable('User')
       .where('id', '=', userId)
       .set(eb => ({
@@ -17,7 +22,7 @@ async function handlePermit(permitId: string, userId: string) {
       }))
       .executeTakeFirstOrThrow();
   } else if (permit.type === PermitType.PROJECT) {
-    await db
+    await trx
       .updateTable('User')
       .where('id', '=', userId)
       .set(eb => ({
@@ -25,7 +30,7 @@ async function handlePermit(permitId: string, userId: string) {
       }))
       .executeTakeFirstOrThrow();
   } else if (permit.type === PermitType.BANNER) {
-    const banner = await db
+    const banner = await trx
       .insertInto('Banner')
       .values({
         bannerPositionId: permit.bannerPositionId,
@@ -34,7 +39,7 @@ async function handlePermit(permitId: string, userId: string) {
       .executeTakeFirstOrThrow();
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + permit.quantity);
-    await db
+    await trx
       .insertInto('PartnerBanner')
       .values({
         bannerId: banner.id,
@@ -45,7 +50,7 @@ async function handlePermit(permitId: string, userId: string) {
       })
       .executeTakeFirstOrThrow();
   } else if (permit.type === PermitType.SUBSCRIPTION) {
-    const user = await db
+    const user = await trx
       .selectFrom('User')
       .select([
         'subscriptionEndsAt',
@@ -56,7 +61,7 @@ async function handlePermit(permitId: string, userId: string) {
       ])
       .where('id', '=', userId)
       .executeTakeFirstOrThrow();
-    const prevSubscription = await db
+    const prevSubscription = await trx
       .selectFrom('Subscription')
       .select(['id', 'maxMedia', 'maxEvents', 'maxProjects'])
       .where('id', '=', user.subscriptionId)
@@ -74,7 +79,7 @@ async function handlePermit(permitId: string, userId: string) {
       date = new Date(user.subscriptionEndsAt);
     }
     const currentMonth = date?.getMonth();
-    await db
+    await trx
       .updateTable('User')
       .where('id', '=', userId)
       .set({
@@ -90,21 +95,81 @@ async function handlePermit(permitId: string, userId: string) {
   }
 }
 
-async function handleDonation(donationId: string) {
-  await db
+async function handleDonation(
+  trx: Transaction<DB> | Kysely<DB>,
+  donationId: string,
+  userId: string
+) {
+  const donation = await trx
     .updateTable('Donation')
     .where('id', '=', donationId)
     .set({
       status: PaymentStatus.PAID,
     })
+    .returning(['amount', 'id'])
+    .executeTakeFirstOrThrow();
+  let invoice = await trx
+    .selectFrom('Invoice')
+    .select(['id', 'feePercentage'])
+    .where(eb =>
+      eb.and({
+        userId: userId,
+        status: InvoiceStatus.NEW,
+      })
+    )
+    .executeTakeFirst();
+  if (!invoice) {
+    const lastInvoice = await trx
+      .selectFrom('Invoice')
+      .select('number')
+      .orderBy('createdAt asc')
+      .executeTakeFirst();
+    const number = lastInvoice
+      ? (+lastInvoice.number + 1).toString()
+      : '000000001';
+    invoice = await trx
+      .insertInto('Invoice')
+      .values({
+        userId: userId,
+        number: number,
+      })
+      .returning(['id', 'feePercentage'])
+      .executeTakeFirstOrThrow();
+  }
+  await trx
+    .insertInto('InvoiceItem')
+    .values({
+      invoiceId: invoice.id,
+      donationId: donation.id,
+      amount: donation.amount.toString(),
+    })
+    .executeTakeFirstOrThrow();
+  const { itemsTotal } = await trx
+    .selectFrom('InvoiceItem')
+    .select(expressionBuilder => {
+      return expressionBuilder.fn.sum('amount').as('itemsTotal');
+    })
+    .where('invoiceId', '=', invoice?.id)
+    .executeTakeFirstOrThrow();
+  const fee = (Number(itemsTotal) * invoice.feePercentage) / 100;
+  const total = Number(itemsTotal) - fee;
+
+  trx
+    .updateTable('Invoice')
+    .set({
+      itemsTotal: itemsTotal.toString() ?? 0,
+      total: total.toString(),
+      fee: fee.toString(),
+    })
     .executeTakeFirstOrThrow();
 }
 
 export default async function handlePaymentSuccess(
+  trx: Transaction<DB> | Kysely<DB>,
   paymentId: string,
   userId: string
 ) {
-  const payment = await db
+  const payment = await trx
     .selectFrom('Payment')
     .selectAll()
     .where('id', '=', paymentId)
@@ -114,8 +179,8 @@ export default async function handlePaymentSuccess(
   }
 
   if (payment.permitId) {
-    handlePermit(payment.permitId, userId);
+    handlePermit(trx, payment.permitId, userId);
   } else if (payment.donationId) {
-    handleDonation(payment.donationId);
+    handleDonation(trx, payment.donationId, userId);
   }
 }

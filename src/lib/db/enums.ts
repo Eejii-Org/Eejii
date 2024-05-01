@@ -52,3 +52,8 @@ export const PermitType = {
     SUBSCRIPTION: "SUBSCRIPTION"
 } as const;
 export type PermitType = (typeof PermitType)[keyof typeof PermitType];
+export const InvoiceStatus = {
+    NEW: "NEW",
+    PAID: "PAID"
+} as const;
+export type InvoiceStatus = (typeof InvoiceStatus)[keyof typeof InvoiceStatus];
