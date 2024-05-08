@@ -257,7 +257,7 @@ export default function EventViewPage(
                         </Text>
                       </Table.Td>
                       <Table.Td>
-                        <Text>{+data?.maxVolunteers}</Text>
+                        <Text>{data?.maxVolunteers}</Text>
                       </Table.Td>
                     </Table.Tr>
                     {data?.Roles &&

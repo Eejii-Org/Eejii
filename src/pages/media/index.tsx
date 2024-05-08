@@ -1,14 +1,6 @@
 import PublicLayout from '@/components/layout/public-layout';
 import { PublicMediaList } from '@/components/media/list';
 import { MediaSidebar } from '@/components/media/sidebar';
-import {
-  ActionIcon,
-  Container,
-  Flex,
-  Grid,
-  Space,
-  TextInput,
-} from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -18,43 +10,41 @@ export default function Index() {
   const router = useRouter();
   return (
     <PublicLayout>
-      <Space h={'xl'} />
-      <Container size={'xl'}>
-        <Grid columns={16}>
-          <Grid.Col span={{ base: 16, lg: 12 }}>
-            <Flex justify={'space-between'} gap={20}>
-              <TextInput
-                placeholder="Search..."
-                radius={'xl'}
-                size="lg"
-                onChange={e => {
-                  e.preventDefault();
-                  setSearch(e.currentTarget.value);
-                }}
-                w={'100%'}
-                rightSection={
-                  <ActionIcon
-                    variant="transparent"
-                    onClick={() => {
-                      router.push({
-                        pathname: router.pathname,
-                        query: { ...router.query, q: search },
-                      });
-                    }}
-                  >
-                    <IconSearch />
-                  </ActionIcon>
-                }
-              />
-            </Flex>
-            <Space h={'lg'} />
-            <PublicMediaList />
-          </Grid.Col>
-          <Grid.Col span={{ base: 16, lg: 4 }}>
-            <MediaSidebar />
-          </Grid.Col>
-        </Grid>
-      </Container>
+      <main>
+        <div className="container pb-[40px] md:py-[60px]">
+          <div className="flex max-md:flex-col gap-5 md:gap-9">
+            <div className="w-full">
+              <div className="flex justify-between mb-3 md:mb-8 mx-3 px-4 py-5 md:py-5 md:px-6 bg-white shadow-md rounded-full">
+                <input
+                  className="w-full outline-none text-lg"
+                  placeholder="Хайх"
+                  onChange={e => {
+                    e.preventDefault();
+                    setSearch(e.currentTarget.value);
+                  }}
+                />
+
+                <IconSearch
+                  onClick={() => {
+                    router.push({
+                      pathname: router.pathname,
+                      query: { ...router.query, q: search },
+                    });
+                  }}
+                  className="text-primary"
+                />
+              </div>
+              <div className="md:hidden mb-5">
+                <MediaSidebar />
+              </div>
+              <PublicMediaList />
+            </div>
+            <div className="max-md:hidden">
+              <MediaSidebar />
+            </div>
+          </div>
+        </div>
+      </main>
     </PublicLayout>
   );
 }

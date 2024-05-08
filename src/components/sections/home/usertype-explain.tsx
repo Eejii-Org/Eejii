@@ -60,7 +60,7 @@ export default function UsertypeExplain() {
   ];
   return (
     <div className="bg-primary/20 py-[44px] md:py-16">
-      <div className="md:container flex flex-row md:justify-evenly max-md:gap-4 max-md:snap-x max-md:snap-mandatory overflow-x-scroll max-md:px-[18px]">
+      <div className="md:container flex flex-row md:justify-evenly max-md:gap-4 max-md:snap-x max-md:snap-mandatory overflow-x-scroll no-scrollbar max-md:px-[18px]">
         {cardData.map((card, index) => (
           <div
             className=" max-md:min-w-[calc(100vw-25vw)] max-md:snap-always max-md:snap-center my-4"

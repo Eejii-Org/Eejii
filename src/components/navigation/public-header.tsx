@@ -65,7 +65,7 @@ export const PublicHeader = () => {
         </button>
         <div className="absolute max-md:shadow-md right-0 top-[65px] w-full md:w-auto md:static">
           <div
-            className={`bg-white flex-col gap-2 container md:rounded border z-10 ${isNavOpened ? 'flex' : 'hidden'} md:flex md:flex-row md:static md:border-none md:w-auto`}
+            className={`bg-white flex-col gap-2 md:rounded border z-10 ${isNavOpened ? 'flex' : 'hidden'} md:flex md:flex-row md:static md:border-none md:w-auto`}
           >
             {links.map((link, index) => {
               if (link.label == 'Платформ') {
