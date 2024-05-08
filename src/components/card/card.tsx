@@ -12,7 +12,7 @@ interface CardPropsType {
   cardSize?: 'small' | 'base' | 'large';
   contain?: boolean;
   categoryVisible?: boolean;
-  cardData: any;
+  cardData?: any;
   loading?: boolean;
   showHighlight?: boolean;
   highlightColor?: string;

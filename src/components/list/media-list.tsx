@@ -1,6 +1,6 @@
 import type { Media } from '@/lib/types';
-import { Alert, SimpleGrid, Skeleton } from '@mantine/core';
-import { MediaCard } from '../media/card';
+
+import { Card } from '../card/card';
 
 export const MediaList = ({
   medias,
@@ -11,26 +11,24 @@ export const MediaList = ({
 }) => {
   return (
     <div>
-      {!isLoading && medias ? (
-        <SimpleGrid cols={{ base: 2, lg: 3, xl: 4 }}>
-          {medias && medias.length > 0 ? (
-            medias.map((media, i) => (
-              <MediaCard key={i} media={media as unknown as Media} />
-            ))
-          ) : (
-            <Alert variant="light" color="blue" title="No medias"></Alert>
-          )}
-        </SimpleGrid>
-      ) : (
-        <SimpleGrid>
-          <Skeleton w={'100%'} h={400} />
-          <Skeleton w={'100%'} h={400} />
-          <Skeleton w={'100%'} h={400} />
-          <Skeleton w={'100%'} h={400} />
-          <Skeleton w={'100%'} h={400} />
-          <Skeleton w={'100%'} h={400} />
-        </SimpleGrid>
-      )}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {isLoading ? (
+          <>
+            <Card cardType="media" loading={isLoading} />
+            <Card cardType="media" loading={isLoading} />
+            <Card cardType="media" loading={isLoading} />
+          </>
+        ) : (
+          medias.map((media, i) => (
+            <Card
+              cardData={media}
+              key={i}
+              cardType="media"
+              loading={isLoading}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 };

@@ -65,13 +65,13 @@ export default function EventVolunteers(
           </Tabs.List>
           <Space h="lg" />
           <Tabs.Panel value="my_volunteers">
-            <MyVolunteersTable event={data as Event} />
+            <MyVolunteersTable event={data as unknown as Event} />
           </Tabs.Panel>
           <Tabs.Panel value="volunteer_applicants">
-            <VolunteerApplicantsTable event={data as Event} />
+            <VolunteerApplicantsTable event={data as unknown as Event} />
           </Tabs.Panel>
           <Tabs.Panel value="other_volunteers">
-            <OtherVolunteersTable event={data as Event} />
+            <OtherVolunteersTable event={data as unknown as Event} />
           </Tabs.Panel>
         </Tabs>
       </Container>

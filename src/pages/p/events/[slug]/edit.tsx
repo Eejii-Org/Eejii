@@ -5,7 +5,7 @@ import EventForm from '@/components/form/event-form';
 import PartnerLayout from '@/components/layout/partner-layout';
 import { EventType } from '@/lib/db/enums';
 import handleImageUpload from '@/lib/hooks/upload-image';
-import type { S3ParamType } from '@/lib/types';
+import type { S3ParamType, Event } from '@/lib/types';
 import imageResizer from '@/lib/utils/image-resizer';
 import type { eventSchema } from '@/lib/validation/event-schema';
 import { api } from '@/utils/api';
@@ -114,7 +114,7 @@ const EditEvent = () => {
         {!isLoading && data ? (
           <EventForm
             type={data.type as unknown as EventType}
-            data={data}
+            data={data as unknown as Event}
             isLoading={isPending}
             handleSubmit={handleSubmit}
             setFiles={setFiles}

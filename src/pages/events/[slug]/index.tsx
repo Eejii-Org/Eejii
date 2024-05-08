@@ -38,9 +38,9 @@ export default function EventViewPage(
   return (
     <PublicLayout>
       {event?.featured == true ? (
-        <FeaturedEventDetail event={event as Event} />
+        <FeaturedEventDetail event={event as unknown as Event} />
       ) : (
-        <EventDetail event={event as Event} />
+        <EventDetail event={event as unknown as Event} />
       )}
       <Container size={'xl'}>
         <Space h="lg" />
