@@ -11,7 +11,7 @@ export default function Index() {
   return (
     <PublicLayout>
       <main>
-        <div className="container pb-[40px] md:py-[60px]">
+        <div className="container max-md:mt-5 pb-[40px] md:py-[60px]">
           <div className="flex max-md:flex-col gap-5 md:gap-9">
             <div className="w-full">
               <div className="flex justify-between mb-3 md:mb-8 mx-3 px-4 py-5 md:py-5 md:px-6 bg-white shadow-md rounded-full">

@@ -1,44 +1,37 @@
 import type { Media } from '@/lib/types';
 import { api } from '@/utils/api';
-import {
-  Alert,
-  Center,
-  SimpleGrid,
-  Skeleton,
-  Space,
-  Title,
-} from '@mantine/core';
-import { MediaCard } from './card';
+import { Card } from '../card/card';
 
-export const RelatedMedias = ({ id }: { id: string }) => {
-  const { data: medias, isLoading } = api.media.findRelated.useQuery({
-    limit: 3,
-    excludeId: id,
-  });
-  if (isLoading) {
-    return (
-      <SimpleGrid cols={{ base: 1, lg: 3 }}>
-        <Skeleton h={400} w={300} />
-        <Skeleton h={400} w={300} />
-        <Skeleton h={400} w={300} />
-      </SimpleGrid>
-    );
-  }
-  return (
-    <div>
-      <Center>
-        <Title order={2}>Холбоотой мэдээллүүд</Title>
-      </Center>
-      <Space h={'xl'} />
-      <SimpleGrid cols={{ base: 1, lg: 3 }}>
-        {medias && medias.length > 0 ? (
-          medias.map(media => (
-            <MediaCard key={media.title} media={media as unknown as Media} />
-          ))
-        ) : (
-          <Alert title="No result">No related medias to show</Alert>
-        )}
-      </SimpleGrid>
-    </div>
-  );
-};
+export const RelatedMedias = () =>
+  // { id }: { id: string }
+
+  {
+    //Доорх query ажлиллахгүй байсан тул filter-гүйгээр list авлаа.
+
+    // const { data: medias, isLoading } = api.media.findRelated.useQuery({
+    //   limit: 3,
+    //   excludeId: id,
+    // });
+    const { data: medias } = api.media.findAll.useQuery({
+      limit: 3,
+    });
+
+    if (medias && 0 < medias.length) {
+      return (
+        <div className="w-full">
+          <h4 className="font-semibold text-3xl text-center mb-8">
+            Холбоотой мэдээллүүд
+          </h4>
+          <div className="grid md:grid-cols-3 gap-8">
+            {medias.map(media => (
+              <Card
+                key={media.title}
+                cardData={media as unknown as Media}
+                cardType="media"
+              />
+            ))}
+          </div>
+        </div>
+      );
+    } else return <></>;
+  };
