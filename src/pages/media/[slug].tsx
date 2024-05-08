@@ -1,31 +1,36 @@
 import PublicLayout from '@/components/layout/public-layout';
 import { MediaDetail } from '@/components/media/media-detail';
 import { RelatedMedias } from '@/components/media/related-medias';
-import type { Media } from '@/lib/types';
+// import type { Media } from '@/lib/types';
 import { appRouter } from '@/server/api/root';
 import { db } from '@/server/db';
-import { api } from '@/utils/api';
-import { Container, LoadingOverlay, Space } from '@mantine/core';
+// import { api } from '@/utils/api';
 import { createServerSideHelpers } from '@trpc/react-query/server';
-import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import type {
+  GetServerSideProps,
+  //  InferGetServerSidePropsType
+} from 'next';
 import superjson from 'superjson';
 
-export default function Detail(
-  props: InferGetServerSidePropsType<typeof getServerSideProps>
-) {
-  const { slug } = props;
-  if (!slug) <LoadingOverlay visible />;
-  const { data: media } = api.media.findBySlug.useQuery({
-    slug: slug as string,
-  });
+export default function Detail() {
+  // props: InferGetServerSidePropsType<typeof getServerSideProps>
+  // const { slug } = props;
+  // const { data: media } = api.media.findBySlug.useQuery({
+  //   slug: slug as string,
+  // });
+
   return (
     <PublicLayout>
-      <Space h={'xl'} />
-      <Container size={'lg'}>
-        {media ? <MediaDetail media={media as unknown as Media} /> : 'no media'}
-        <Space h={130} />
-        <RelatedMedias id={media?.id as string} />
-      </Container>
+      <div className="md:container mb-16 flex flex-col gap-20 md:mt-5">
+        <MediaDetail
+        // media={media as unknown as Media}
+        />
+        <div className="max-md:container">
+          <RelatedMedias
+          // id={media?.id as string}
+          />
+        </div>
+      </div>
     </PublicLayout>
   );
 }

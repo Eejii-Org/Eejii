@@ -121,7 +121,7 @@ export const Card = (props: CardPropsType) => {
               ) : (
                 <div className="w-full flex items-start">
                   <Link
-                    href="/projects"
+                    href={`/media/${cardData.id}`}
                     className=" text-primary font-bold text-lg flex justify-center items-center gap-2"
                   >
                     Унших

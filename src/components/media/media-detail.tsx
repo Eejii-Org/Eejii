@@ -1,73 +1,91 @@
-import type { Media } from '@/lib/types';
-import {
-  Avatar,
-  Button,
-  Center,
-  Divider,
-  Flex,
-  Paper,
-  Space,
-  Text,
-  Title,
-} from '@mantine/core';
+// import type { Media } from '@/lib/types';
 import { IconArrowLeft } from '@tabler/icons-react';
-import { format } from 'date-fns';
+// import { format } from 'date-fns';
 import Link from 'next/link';
-import { FallbackImage } from '../common/fallback-image';
+import Image from 'next/image';
 
-export const MediaDetail = ({ media }: { media: Media }) => {
-  const image =
-    process.env.NEXT_PUBLIC_AWS_PATH + '/' + media?.Images?.[0]?.path;
-  return (
-    <section className="relative">
-      <FallbackImage
-        src={image}
-        radius={'lg'}
-        width={1200}
-        fullWidth
-        height={400}
-        alt="mediaNext"
-      />
-      <Center w={'100%'}>
-        <Paper
-          pos={'absolute'}
-          mx={'auto'}
-          top={200}
-          maw={800}
-          miw={{ base: 350, md: 700, lg: 800 }}
-          radius={'xl'}
-          py={'lg'}
-          px={'xl'}
-          shadow="md"
-        >
-          <Title mb={10} order={1}>
-            {media.title}
-          </Title>
-          <Flex mb={10} justify={'start'} gap={5} align={'center'}>
-            <Avatar />
-            <Text c={'gray.7'} fz={22} fw={600}>
-              {media.Owner.organizationName ?? media.Owner.email}
-            </Text>
-          </Flex>
-          <Text c={'gray.7'} fz={18} fw={600}>
-            Published at{' '}
-            {format(media.createdAt as unknown as Date, 'LLL do yyyy, H:mm')}
-          </Text>
-          <Divider variant="dashed" my={5} size={5} />
-          <Text fz={18}>{media.body}</Text>
-          <Space h={'lg'} />
-          <Flex justify={'start'}>
-            <Button
-              component={Link}
-              href={'/media'}
-              variant="subtle"
-              leftSection={<IconArrowLeft />}
-            >
-              Буцах
-            </Button>
-          </Flex>
-        </Paper>
-      </Center>
-    </section>
-  );
-};
+// media-гаа авахгүй байсан тул гараар content орууллаа.
+
+export const MediaDetail = () =>
+  // { media }: { media: Media }
+  {
+    // const image =
+    //   process.env.NEXT_PUBLIC_AWS_PATH + '/' + media?.Images?.[0]?.path;
+    return (
+      <section>
+        <Image
+          // src={image}
+          src={'/images/home/backGroundImg.png'}
+          width={1200}
+          height={329}
+          className="md:rounded-[20px] w-full h-[329px] object-cover"
+          alt="Media Background IMG"
+        />
+        <div className="w-full mx-auto">
+          <div className="container px-10 py-7 sm:px-[64px] sm:py-[48px] bg-white relative mx-auto shadow-sm rounded-2xl md:max-w-[800px] xs:-mt-28 md:-mt-44">
+            <header className="flex flex-col gap-1 mb-6">
+              <h5 className="font-bold text-[30px] mb-2">
+                {/* {media.title} */}
+                Media Title Media Title Media Title
+              </h5>
+              <div className="flex items-center gap-2 justify-between">
+                <div className="flex gap-2">
+                  <Image
+                    width={25}
+                    height={25}
+                    src={'/images/volunteer/volunteer_logo.png'}
+                    alt="publisher's avatar"
+                  />
+                  <p className="font-semibold text-xl text-black/60">
+                    {/* {media.Owner.organizationName ?? media.Owner.email} */}
+                    Тэмүүжин
+                  </p>
+                </div>
+                <p className="text-lg text-black/50">
+                  {/* Published at{' '}
+              {format(media.createdAt as unknown as Date, 'LLL do yyyy, H:mm')} */}
+                  Jan, 1 2004
+                </p>
+              </div>
+            </header>
+            <p className=" text-[18px] mb-9">
+              {/* {media.body} */}"Lorem ipsum dolor sit amet, consectetur
+              adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+              dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+              exercitation ullamco laboris nisi ut aliquip ex ea commodo
+              consequat. Duis aute irure dolor in reprehenderit in voluptate
+              velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+              occaecat cupidatat non proident, sunt in culpa qui officia
+              deserunt mollit anim id est laborum.""Lorem ipsum dolor sit amet,
+              consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+              labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+              nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+              consequat. Duis aute irure dolor in reprehenderit in voluptate
+              velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+              occaecat cupidatat non proident, sunt in culpa qui officia
+              deserunt mollit anim id est laborum.""Lorem ipsum dolor sit amet,
+              consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+              labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+              nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+              consequat. Duis aute irure dolor in reprehenderit in voluptate
+              velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+              occaecat cupidatat non proident, sunt in culpa qui officia
+              deserunt mollit anim id est laborum.""Lorem ipsum dolor sit amet,
+              consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+              labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+              nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+              consequat. Duis aute irure dolor in reprehenderit in voluptate
+              velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+              occaecat cupidatat non proident, sunt in culpa qui officia
+              deserunt mollit anim id est laborum."
+            </p>
+            <div className="">
+              <Link className="flex gap-2" href={'/media'}>
+                <IconArrowLeft /> Буцах
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  };
