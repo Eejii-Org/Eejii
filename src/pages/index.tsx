@@ -10,13 +10,11 @@ import Features from '@/components/sections/home/features';
 import UsertypeExplain from '@/components/sections/home/usertype-explain';
 import Banner from '@/components/sections/home/banner';
 import { api } from '@/utils/api';
-import { LoadingOverlay } from '@mantine/core';
 import type { Country } from '@/lib/db/types';
 import LatestProjects from '@/components/sections/home/latest-projects';
 
 export default function Home() {
   const { data, isLoading } = api.data.getHomeStatistics.useQuery();
-  if (isLoading) return <LoadingOverlay />;
   console.log(data);
   return (
     <PublicLayout>
@@ -28,6 +26,7 @@ export default function Home() {
         thisMonthProjectsAndEvents={
           (data?.thisMonthProjectsAndEvents as number) ?? 0
         }
+        isLoading={isLoading}
       />
       <UsertypeExplain />
       <Features />
@@ -39,6 +38,7 @@ export default function Home() {
         level_3={data?.level_3 ?? 0}
         level_4={data?.level_4 ?? 0}
         countries={data?.countries as unknown as Country[]}
+        isLoading={isLoading}
       />
       <PartnersHome />
       <EmailCta />
