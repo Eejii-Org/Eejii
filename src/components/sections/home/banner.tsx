@@ -8,12 +8,14 @@ export default function Banner({
   volunteersPercentage,
   totalDonations,
   thisMonthProjectsAndEvents,
+  isLoading,
 }: {
   totalProjects: number;
   totalVolunteeringEvents: number;
   volunteersPercentage: number;
   totalDonations: number;
   thisMonthProjectsAndEvents: number;
+  isLoading: boolean;
 }) {
   // const { data: banner4 } = api.banner.findAll.useQuery({
   //   positionCode: 'home_left_middle',
@@ -50,29 +52,37 @@ export default function Banner({
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full ">
           <div className="flex flex-col gap-4 order-1 md:order-none">
             <div className="">
-              <div className="p-3 bg-[#3c888D] bannerMasking -scale-x-100 rounded-[32px] pt-9 relative h-56 md:h-80 flex justify-end flex-col gap-6">
-                <div className="flex flex-col gap-1 -scale-x-100">
-                  <h5 className=" text-white font-medium text-[48px] hidden md:inline pb-3">
-                    {volunteersPercentage}%
-                  </h5>
-                  <p className="font-semibold md:font-bold text-white">
-                    Манай нийт оролцогчдын {volunteersPercentage} хувийг нь сайн
-                    дурын ажилчид эзэлж байна
-                  </p>
-                </div>
+              <div
+                className={`p-3 bg-[#3c888D] bannerMasking -scale-x-100 rounded-[32px] pt-9 relative h-56 md:h-80 flex justify-end flex-col gap-6 ${isLoading && 'bg-gray-200 animate-pulse'}`}
+              >
+                <div className={` ${isLoading && 'invisible'}`}>
+                  <div className="flex flex-col gap-1 -scale-x-100">
+                    <h5 className=" text-white font-medium text-[48px] hidden md:inline pb-3">
+                      {volunteersPercentage}%
+                    </h5>
+                    <p className="font-semibold md:font-bold text-white">
+                      Манай нийт оролцогчдын {volunteersPercentage} хувийг нь
+                      сайн дурын ажилчид эзэлж байна
+                    </p>
+                  </div>
 
-                <button className="w-full flex flex-row -scale-x-100 items-center justify-center md:justify-between p-3 md:p-2 bg-black/15 rounded-full">
-                  <div className="font-semibold md:pl-5 text-md text-white">
-                    Бидэнтэй нэгдэх
-                  </div>
-                  <div className="hidden md:inline">
-                    <ArrowCirlceUpRight color="#BFE88C" />
-                  </div>
-                </button>
+                  <button className="w-full flex flex-row -scale-x-100 items-center justify-center md:justify-between p-3 md:p-2 bg-black/15 rounded-full">
+                    <div className="font-semibold md:pl-5 text-md text-white">
+                      Бидэнтэй нэгдэх
+                    </div>
+                    <div className="hidden md:inline">
+                      <ArrowCirlceUpRight color="#BFE88C" />
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="p-3 bg-[#1B2B2C] rounded-[32px] py-8 items-center hidden md:flex">
-              <div className="relative h-14 min-w-14 hidden md:block">
+            <div
+              className={`p-3 bg-[#1B2B2C] rounded-[32px] py-8 items-center hidden md:flex ${isLoading && 'bg-gray-200 animate-pulse'}`}
+            >
+              <div
+                className={`relative h-14 min-w-14 hidden md:block ${isLoading && 'invisible'}`}
+              >
                 <Image
                   src="/images/home/checkmark.png"
                   className="object-contain"
@@ -81,34 +91,49 @@ export default function Banner({
                   unoptimized
                 />
               </div>
-              <h1 className="font-bold text-white text-center flex-1">
+              <h1
+                className={`font-bold text-white text-center flex-1 ${isLoading && 'invisible'}`}
+              >
                 Be a good Human
               </h1>
             </div>
           </div>
           <div className="flex items-end justify-end order-4 md:order-none">
-            <div className="p-4 rounded-[32px] pt-9 md:pb-8 relative h-56 md:h-80 flex items-end w-full">
-              <div className="text-white text-lg md:text-xl text-left font-semibold md:font-bold z-20">
+            <div
+              className={`p-4 rounded-[32px] pt-9 md:pb-8 relative h-56 md:h-80 flex items-end w-full ${isLoading && 'bg-gray-200 animate-pulse -scale-x-100 bannerMasking'}`}
+            >
+              <div
+                className={`text-white text-lg md:text-xl text-left font-semibold md:font-bold z-20 ${isLoading && 'invisible'}`}
+              >
                 Нийт {totalVolunteeringEvents}+ cайн <br /> дурын ажлууд
               </div>
               <Image
                 src="/images/home/folderLeftIMG1.png"
-                className="z-0 object-cover rounded-[32px] bannerMasking -scale-x-100"
+                className={`z-0 object-cover rounded-[32px] bannerMasking -scale-x-100 ${isLoading && 'invisible'}`}
                 fill
                 alt="folderLeftImg"
               />
             </div>
           </div>
-          <div className="flex items-end border-[1px] border-[#3c888D] rounded-[32px] md:border-none col-span-2 md:col-span-1 order-3 md:order-none">
-            <div className="p-3 bg-primary-900/20 rounded-[32px] md:h-64 flex flex-col gap-4 w-full">
-              <div className="flex flex-1 justify-center items-center text-[#3c888D] md:text-black px-8 md:px-0 py-[8px] md:py-0">
+
+          <div
+            className={`flex items-end border-[1px] border-[#3c888D] rounded-[32px] md:border-none col-span-2 md:col-span-1 order-3 md:order-none ${isLoading && 'border-none'}`}
+          >
+            <div
+              className={`p-3 bg-primary-900/20 rounded-[32px] md:h-64 flex flex-col gap-4 w-full ${isLoading && 'bg-gray-200 animate-pulse'}`}
+            >
+              <div
+                className={`flex flex-1 justify-center items-center text-[#3c888D] md:text-black px-8 md:px-0 py-[8px] md:py-0 ${isLoading && 'invisible'}`}
+              >
                 <p className="font-bold text-lg text-center">
                   Бид нийт {priceFormat(totalDonations, 'MNT')} төгрөгийн хандив
                   цуглуулжээ
                 </p>
               </div>
 
-              <button className="flex flex-row items-center justify-center md:justify-between p-3 md:p-2 text-white md:text-black bg-[#3c888D] md:bg-black/15 rounded-full">
+              <button
+                className={`flex flex-row items-center justify-center md:justify-between p-3 md:p-2 text-white md:text-black bg-[#3c888D] md:bg-black/15 rounded-full ${isLoading && 'invisible'}`}
+              >
                 <div className="font-semibold text-md md:pl-5">Хандив өгөх</div>
                 <div className="hidden md:inline">
                   <ArrowCirlceUpRight />
@@ -116,14 +141,19 @@ export default function Banner({
               </button>
             </div>
           </div>
+
           <div className="flex items-end justify-end order-5 md:order-none">
-            <div className="p-4 rounded-[32px] pt-9 pb-4 md:pb-8 relative h-56 md:h-80 flex items-end w-full">
-              <div className="text-white text-lg md:text-xl text-left font-semibold md:font-bold z-20">
+            <div
+              className={`p-4 rounded-[32px] pt-9 pb-4 md:pb-8 relative h-56 md:h-80 flex items-end w-full ${isLoading && 'bg-gray-200 animate-pulse bannerMasking'}`}
+            >
+              <div
+                className={`text-white text-lg md:text-xl text-left font-semibold md:font-bold z-20 ${isLoading && 'invisible'}`}
+              >
                 Нийт {totalProjects}+ төсөл хөтөлбөрүүд
               </div>
               <Image
                 src="/images/home/folderRightIMG1.png"
-                className="z-0 object-cover rounded-[32px] bannerMasking"
+                className={`z-0 object-cover rounded-[32px] bannerMasking ${isLoading && 'invisible'}`}
                 fill
                 alt="folderLeftImg"
               />
@@ -131,8 +161,10 @@ export default function Banner({
           </div>
           <div className="flex flex-col gap-4 order-2 md:order-none">
             <div className="relative flex flex-col items-end">
-              <div className="p-3 bg-[#BFE88C] bannerMasking rounded-[32px] relative h-56 md:h-80 w-full flex flex-col gap-3 md:gap-6 justify-between md:justify-end">
-                <div className="relative flex-1 ">
+              <div
+                className={`p-3 bg-[#BFE88C] bannerMasking rounded-[32px] relative h-56 md:h-80 w-full flex flex-col gap-3 md:gap-6 justify-between md:justify-end ${isLoading && 'bg-gray-200 animate-pulse'}`}
+              >
+                <div className={`relative flex-1 ${isLoading && 'invisible'}`}>
                   <Image
                     src="/images/home/folderINimg.png"
                     fill
@@ -141,11 +173,15 @@ export default function Banner({
                     unoptimized
                   />
                 </div>
-                <p className="text-black/60 font-semibold md:font-bold">
+                <p
+                  className={`text-black/60 font-semibold md:font-bold ${isLoading && 'invisible'}`}
+                >
                   Энэ сард нийт {thisMonthProjectsAndEvents} төсөл шинээр
                   нэмэгдлээ
                 </p>
-                <button className="flex flex-row text-white md:text-black w-full items-center justify-center md:justify-between p-3 md:p-2 bg-black/15 rounded-full">
+                <button
+                  className={`flex flex-row text-white md:text-black w-full items-center justify-center md:justify-between p-3 md:p-2 bg-black/15 rounded-full ${isLoading && 'invisible'}`}
+                >
                   <div className="font-semibold md:pl-5 text-md">
                     Дэлгэрэнгүй
                   </div>
@@ -156,17 +192,21 @@ export default function Banner({
               </div>
             </div>
 
-            <div className="p-3 bg-[#245255] rounded-[32px] py-8 hidden md:flex">
+            <div
+              className={`p-3 bg-[#245255] rounded-[32px] py-8 hidden md:flex ${isLoading && 'bg-gray-200 animate-pulse'}`}
+            >
               <div className="relative h-14 min-w-14">
                 <Image
                   src="/images/home/heart.png"
-                  className="object-contain"
+                  className={`object-contain ${isLoading && 'invisible'}`}
                   fill
                   alt="fr-image"
                   unoptimized
                 />
               </div>
-              <h1 className="flex-1 font-bold text-[#BFE88C] text-center">
+              <h1
+                className={`flex-1 font-bold text-[#BFE88C] text-center ${isLoading && 'invisible'}`}
+              >
                 Be someone's
                 <br />
                 hope today
