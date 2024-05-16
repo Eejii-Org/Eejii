@@ -1,6 +1,5 @@
-import ProjectCardPublic from '@/components/card/project-card';
 import type { Project } from '@/lib/types';
-import { Alert, SimpleGrid, Skeleton } from '@mantine/core';
+import { Card } from '../card/card';
 
 export const ProjectList = ({
   projects,
@@ -11,22 +10,31 @@ export const ProjectList = ({
 }) => {
   if (isLoading) {
     return (
-      <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }}>
-        <Skeleton h={420} w={'100%'} radius={'lg'} />
-        <Skeleton h={420} w={'100%'} radius={'lg'} />
-        <Skeleton h={420} w={'100%'} radius={'lg'} />
-      </SimpleGrid>
+      <div className="grid md:grid-cols-3 gap-20">
+        <Card cardSize="small" cardType="project" contain loading={true} />
+        <Card cardSize="small" cardType="project" contain loading={true} />
+        <Card cardSize="small" cardType="project" contain loading={true} />
+      </div>
     );
   }
   return (
-    <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing={'lg'}>
+    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-10 sm:gap-20">
       {projects?.length > 0 ? (
         projects.map((project, i) => (
-          <ProjectCardPublic key={i} fund={project} />
+          <Card
+            cardData={project}
+            cardSize="small"
+            cardType="project"
+            contain
+            loading={isLoading}
+            key={i}
+          />
         ))
       ) : (
-        <Alert title="No result">No fundraisings to show</Alert>
+        <div className="bg-primary rounded-lg text-center">
+          No fundraisings to show
+        </div>
       )}
-    </SimpleGrid>
+    </div>
   );
 };

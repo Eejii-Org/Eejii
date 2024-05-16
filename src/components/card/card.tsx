@@ -4,8 +4,17 @@ import Image from 'next/image';
 import { Skeleton } from '../skeleton';
 import { priceFormat } from '@/lib/utils/price';
 import Link from 'next/link';
-import { IconArrowRight } from '@tabler/icons-react';
-import { getDate, getMonth, getYear } from 'date-fns';
+import {
+  IconArrowRight,
+  IconHeartFilled,
+  IconClock,
+} from '@tabler/icons-react';
+import {
+  formatDistanceToNowStrict,
+  getDate,
+  getMonth,
+  getYear,
+} from 'date-fns';
 
 interface CardPropsType {
   cardType: 'event' | 'media' | 'project';
@@ -29,9 +38,10 @@ export const Card = (props: CardPropsType) => {
     highlightColor = '#FFE787',
   } = props;
   const { cardData } = props;
+
   return (
     <div
-      className={`flex-1 w-full flex flex-row gap-6 ${contain ? 'bg-white rounded-[24px]' : ''}`}
+      className={`flex-1 w-full flex flex-row gap-6 ${cardType === 'project' && cardSize === 'small' && 'shadow-md rounded-xl'} ${contain ? 'bg-white rounded-[24px]' : ''}`}
     >
       {showHighlight && (
         <div className={`w-1 mt-24`} style={{ background: highlightColor }} />
@@ -43,7 +53,7 @@ export const Card = (props: CardPropsType) => {
           />
         ) : (
           <div
-            className={`relative flex-1 w-full rounded-2xl ${showHighlight ? 'shadow-primary/20 shadow drop-shadow' : ''} overflow-hidden ${cardSize == 'base' ? 'min-h-52' : 'min-h-64'}`}
+            className={`relative flex-1 w-full ${cardType == 'project' && cardSize == 'small' ? 'rounded-t-[12px]' : 'rounded-2xl'} ${showHighlight ? 'shadow-primary/20 shadow drop-shadow' : ''} overflow-hidden ${cardSize == 'base' ? 'min-h-52' : 'min-h-64'}`}
           >
             <Image
               src={
@@ -106,13 +116,25 @@ export const Card = (props: CardPropsType) => {
               <h3 className="font-bold text-xl pt-5 md:pt-0">
                 {cardData?.title}
               </h3>
-              <p className="text-lg md:text-md text-black/60">
-                {cardData?.[cardType == 'media' ? 'body' : 'description']
-                  ?.split(' ')
-                  .slice(0, 30)
-                  .join(' ')}
-              </p>
+              {cardType == 'project' && cardSize == 'small' ? (
+                ' '
+              ) : (
+                <p className="text-lg md:text-md text-black/60">
+                  {cardData?.[cardType == 'media' ? 'body' : 'description']
+                    ?.split(' ')
+                    .slice(0, 30)
+                    .join(' ')}
+                </p>
+              )}
             </>
+          )}
+          {cardType == 'project' && (
+            <div>
+              {/* <Image h={25} w={25} src={cardData?.Owner?.Image} /> */}
+              <p className="font-medium text-lg text-black/70">
+                {cardData?.Owner?.organizationName ?? cardData?.Owner.email}
+              </p>
+            </div>
           )}
           {cardType == 'media' && (
             <>
@@ -133,14 +155,15 @@ export const Card = (props: CardPropsType) => {
               )}
             </>
           )}
-          {cardType == 'project' && cardSize !== 'small' && (
+
+          {cardType == 'project' && (
             <>
               {loading ? (
                 <Skeleton className="h-11 rounded" />
               ) : (
                 <div className="flex-1 flex flex-col justify-end">
                   <div>
-                    <div className="flex flex-row items-center gap-1">
+                    <div className="flex flex-row items-center gap-1 mb-4">
                       <div className="w-full bg-[#ECECEC] rounded-full h-[5px]">
                         <div
                           className="bg-[#FF9900] h-[5px] rounded-full"
@@ -186,6 +209,22 @@ export const Card = (props: CardPropsType) => {
                     <button className="bg-primary py-2 mt-2 rounded-[8px] text-white font-bold text-[18px] w-full">
                       Хандив өгөх
                     </button>
+                  )}
+                  {cardSize == 'small' && (
+                    <div className="flex mt-2 items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <IconClock className="w-5 h-5" />
+                        <p className="text-black/50">
+                          {formatDistanceToNowStrict(
+                            cardData?.endTime as unknown as Date
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <IconHeartFilled className="text-primary w-4 h-4" />
+                        <p className="text-black/50">Дэмжигчид</p>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
