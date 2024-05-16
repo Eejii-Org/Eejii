@@ -1,8 +1,9 @@
 import { ProjectStatus, ProjectType } from '@/lib/db/enums';
 import { api } from '@/utils/api';
-import { Carousel } from '@mantine/carousel';
-import { BackgroundImage, Button, Flex, Skeleton } from '@mantine/core';
 import Link from 'next/link';
+import { Skeleton } from '../skeleton';
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import { useRef, useState } from 'react';
 
 export const FeaturedProjects = () => {
   const { data: featuredProjects, isLoading } = api.project.findAll.useQuery({
@@ -12,64 +13,80 @@ export const FeaturedProjects = () => {
     type: ProjectType.FUNDRAISING,
     page: 1,
   });
+  const [index, setIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLSelectElement>(null);
+  const scrollToPosition = (position: 'left' | 'right') => {
+    const projectsLength = featuredProjects?.items?.length || 0;
+    if (
+      (position == 'right' && index == projectsLength - 1) ||
+      (position == 'left' && index == 0)
+    ) {
+      return;
+    }
+    setIndex(position == 'right' ? index + 1 : index - 1);
+    // const scrollWidth = scrollContainerRef.current?.scrollWidth || 0;
+    const scrollLeft = scrollContainerRef.current?.scrollLeft || 0;
+    const cardWidth = scrollContainerRef.current?.clientWidth || 0;
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        left:
+          position == 'left'
+            ? scrollLeft - cardWidth - 32
+            : scrollLeft + cardWidth + 32,
+        behavior: 'smooth',
+      });
+    }
+  };
   if (isLoading) {
-    return <Skeleton h={360} radius={'lg'} w="100%" />;
+    return <Skeleton className="h-[360px] rounded-2xl w-full" />;
   }
   return (
-    <Carousel
-      slideSize="100%"
-      align="start"
-      slideGap="md"
-      controlsOffset="xs"
-      controlSize={27}
-      withIndicators
-      loop
-      dragFree
-    >
-      {featuredProjects && featuredProjects.items.length > 0
-        ? featuredProjects.items.map((project, i) => {
-            const image =
-              process.env.NEXT_PUBLIC_AWS_PATH +
-                '/' +
-                project.Images.find(ei => ei.type === 'main')?.path ?? null;
-            return (
-              <Carousel.Slide key={i}>
-                <BackgroundImage
-                  h={360}
-                  src={image}
-                  radius={'lg'}
-                  style={{ overflow: 'hidden' }}
+    <>
+      {featuredProjects ? (
+        <div className="relative">
+          <section
+            ref={scrollContainerRef}
+            className="h-[360px] flex overflow-x-scroll snap-x snap-mandatory no-scrollbar gap-8"
+          >
+            {featuredProjects.items.map((project, i) => (
+              <div
+                key={i}
+                className="relative h-full w-full bg-primary rounded-2xl text-center items-center py-[60px] px-[46px] snap-always snap-center"
+                style={{
+                  minWidth: scrollContainerRef.current?.clientWidth,
+                }}
+              >
+                <h2 className="text-lg font-semibold mb-1">
+                  {project?.Categories[0]?.name}
+                </h2>
+                <h1 className="pb-12 text-3xl font-semibold">
+                  {project.title}
+                </h1>
+                <Link
+                  href={`/projects/${project.slug}`}
+                  className="bg-primary-800 px-7 py-4 font-semibold text-[14px] rounded"
                 >
-                  <Flex
-                    direction={'column'}
-                    align={'center'}
-                    c={'white'}
-                    h={'100%'}
-                    justify={'center'}
-                    style={{
-                      backdropFilter: 'blur(10px)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    }}
-                  >
-                    <h2 className="text-lg font-semibold">
-                      "{project.Categories[0]?.name}"
-                    </h2>
-                    <h1 className="pb-12 text-3xl font-semibold">
-                      "{project.title}"
-                    </h1>
-                    <Button
-                      component={Link}
-                      href={`/projects/${project.slug}`}
-                      className="h-[44px] w-[144px] rounded-none bg-primary"
-                    >
-                      Хандив өгөх
-                    </Button>
-                  </Flex>
-                </BackgroundImage>
-              </Carousel.Slide>
-            );
-          })
-        : 'hi'}
-    </Carousel>
+                  Хандив өгөх
+                </Link>
+              </div>
+            ))}
+          </section>
+          <button
+            onClick={() => scrollToPosition('left')}
+            className={`absolute top-1/2 left-3 -translate-y-1/2 rounded-full bg-white/40 flex justify-center text-center items-center p-2 ${index == 0 ? 'opacity-20' : ''}`}
+          >
+            <IconChevronLeft className="w-[20px] h-[20px]" />
+          </button>
+          <button
+            onClick={() => scrollToPosition('right')}
+            className={`absolute top-1/2 right-3 -translate-y-1/2  rounded-full bg-white/40 flex justify-center text-center items-center p-2 ${index == featuredProjects?.items.length - 1 ? 'opacity-20' : ''}`}
+          >
+            <IconChevronRight className="w-[20px] h-[20px]" />
+          </button>
+        </div>
+      ) : (
+        <div></div>
+      )}
+    </>
   );
 };

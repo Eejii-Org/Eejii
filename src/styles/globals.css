@@ -31,3 +31,14 @@ body {
     scrollbar-width: none; /* Firefox */
   }
 }
+
+.infscroll {
+  position: absolute;
+  animation: scroll linear 20s infinite;
+}
+
+@keyframes scroll {
+  to {
+    transform: translate(calc(-50% - 32px));
+  }
+}
